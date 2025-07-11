@@ -1,0 +1,177 @@
+name: Auto Label PRs
+
+on:
+  pull_request:
+    types: [opened, synchronize, edited]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Add or remove labels based on PR checklist selection and update PR body
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prBody = context.payload.pull_request.body;
+            // Extrair os números das issues mencionadas no corpo da PR
+            const issueNumbers = Array.from(prBody.matchAll(/(closes|fixes|resolves)\s+#(\d+)/gi)).map(match => match[2]);        
+
+            const icon_bug = []; 
+            const icon_enhancement = [];
+            const icon_feature = [];
+            const icon_docs = [];
+            const icon_refactor = [];
+            const icon_test = [];
+            const icon_security = [];
+            const icon_ui = [];
+            const icon_config = [];
+            const icon_revert = [];
+            const icon_integration = [];
+            const icon_hotfix = [];
+            const icon_experiment = [];
+            const icon_i18n = [];
+            const icon_release = [];
+            const icon_discussion = [];
+            const icon_idea = [];
+            const icon_question = [];
+
+            if (issueNumbers.length > 0) {
+                // Processar cada issue mencionada no corpo da PR
+                for (const issueNumber of issueNumbers) {
+                  const { data: issue } = await github.rest.issues.get({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issueNumber,
+                  });
+
+                  // Verificar se o título da issue contém os ícones
+                  if (issue.title.includes('🐞')) icon_bug.push('🐞');
+                  if (issue.title.includes('🌱')) icon_feature.push('🌱');
+                  if (issue.title.includes('📝')) icon_docs.push('📝');
+                  if (issue.title.includes('🚀')) icon_enhancement.push('🚀');
+                  if (issue.title.includes('🛠️')) icon_refactor.push('🛠️');
+                  if (issue.title.includes('🧪')) icon_test.push('🧪');
+                  if (issue.title.includes('🔒')) icon_security.push('🔒');
+                  if (issue.title.includes('🎨')) icon_ui.push('🎨');
+                  if (issue.title.includes('⚙️')) icon_config.push('⚙️');
+                  if (issue.title.includes('🔄')) icon_revert.push('🔄');
+                  if (issue.title.includes('🧩')) icon_integration.push('🧩');
+                  if (issue.title.includes('🚑')) icon_hotfix.push('🚑');
+                  if (issue.title.includes('🧑‍🔧')) icon_experiment.push('🧑‍🔧');
+                  if (issue.title.includes('🌐')) icon_i18n.push('🌐');
+                  if (issue.title.includes('📢')) icon_release.push('📢');
+                  if (issue.title.includes('💬')) icon_discussion.push('💬');
+                  if (issue.title.includes('💡')) icon_idea.push('💡');
+                  if (issue.title.includes('❓')) icon_question.push('❓');
+                }                
+            }
+
+            const prNumber = context.payload.pull_request.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Adicionar labels conforme ícones
+            const labelsToAdd = [];
+            const labelsToRemove = [];
+
+            if (icon_bug.length > 0) labelsToAdd.push('🐞 Bug'); else labelsToRemove.push('🐞 Bug');
+            if (icon_feature.length > 0) labelsToAdd.push('🌱 Feature Request'); else labelsToRemove.push('🌱 Feature Request');
+            if (icon_docs.length > 0) labelsToAdd.push('📝 Documentation'); else labelsToRemove.push('📝 Documentation');
+            if (icon_enhancement.length > 0) labelsToAdd.push('🚀 Enhancement'); else labelsToRemove.push('🚀 Enhancement');
+            if (icon_refactor.length > 0) labelsToAdd.push('🛠️ Refactor'); else labelsToRemove.push('🛠️ Refactor');
+            if (icon_test.length > 0) labelsToAdd.push('🧪 Test'); else labelsToRemove.push('🧪 Test');
+            if (icon_security.length > 0) labelsToAdd.push('🔒 Security'); else labelsToRemove.push('🔒 Security');
+            if (icon_ui.length > 0) labelsToAdd.push('🎨 UI/UX Update'); else labelsToRemove.push('🎨 UI/UX Update');
+            if (icon_config.length > 0) labelsToAdd.push('⚙️ Configuration Update'); else labelsToRemove.push('⚙️ Configuration Update');
+            if (icon_revert.length > 0) labelsToAdd.push('🔄 Revert Changes'); else labelsToRemove.push('🔄 Revert Changes');
+            if (icon_integration.length > 0) labelsToAdd.push('🧩 Integration'); else labelsToRemove.push('🧩 Integration');
+            if (icon_hotfix.length > 0) labelsToAdd.push('🚑 Hotfix'); else labelsToRemove.push('🚑 Hotfix');
+            if (icon_experiment.length > 0) labelsToAdd.push('🧑‍🔧 Experimentation'); else labelsToRemove.push('🧑‍🔧 Experimentation');
+            if (icon_i18n.length > 0) labelsToAdd.push('🌐 I18n/L10n'); else labelsToRemove.push('🌐 I18n/L10n');
+            if (icon_release.length > 0) labelsToAdd.push('📢 Release'); else labelsToRemove.push('📢 Release');
+            if (icon_discussion.length > 0) labelsToAdd.push('💬 Discussion'); else labelsToRemove.push('💬 Discussion');
+            if (icon_idea.length > 0) labelsToAdd.push('💡 Idea'); else labelsToRemove.push('💡 Idea');
+            if (icon_question.length > 0) labelsToAdd.push('❓ Question'); else labelsToRemove.push('❓ Question');
+
+
+            // Adicionar ou remover as labels no PR
+            if (labelsToAdd.length > 0) {
+              await github.rest.issues.addLabels({
+                issue_number: prNumber,  // Usar o número do PR
+                owner: owner,
+                repo: repo,
+                labels: labelsToAdd
+              });
+            }
+
+            // Remover as labels do PR
+            for (const label of labelsToRemove) {
+              await github.rest.issues.removeLabel({
+                issue_number: prNumber,  // Usar o número do PR
+                owner: owner,
+                repo: repo,
+                name: label
+              }).catch(error => {
+                if (error.status !== 404) throw error;  // Ignorar erro se a label não for encontrada
+              });
+            }
+
+            // Função para gerar a seção "Tipo de Mudança" com base nos ícones encontrados
+            function generateTipoMudanca(icon_bug, icon_enhancement, icon_feature, icon_docs, icon_refactor, icon_test, icon_security, icon_ui, icon_config, icon_revert, icon_integration, icon_hotfix, icon_experiment, icon_i18n, icon_release, icon_discussion, icon_idea, icon_question) {
+                let tipoMudanca = "> Não houve mudanças";
+
+                // Adiciona mudanças específicas conforme os ícones encontrados
+                const changes = [];
+                if (icon_bug.length > 0) changes.push('🐞 Correção de bug');
+                if (icon_feature.length > 0) changes.push('🌱 Nova funcionalidade solicitada');
+                if (icon_docs.length > 0) changes.push('📝 Alteração na documentação');
+                if (icon_enhancement.length > 0) changes.push('🚀 Melhoria de desempenho');
+                if (icon_refactor.length > 0) changes.push('🛠️ Refatoração de código sem mudar a funcionalidade');
+                if (icon_test.length > 0) changes.push('🧪 Testes (adicionando ou corrigindo testes)');
+                if (icon_security.length > 0) changes.push('🔒 Melhoria de segurança');
+                if (icon_ui.length > 0) changes.push('🎨 Alterações na interface ou layout');
+                if (icon_config.length > 0) changes.push('⚙️ Atualização de configuração');
+                if (icon_revert.length > 0) changes.push('🔄 Reversão de mudanças');
+                if (icon_integration.length > 0) changes.push('🧩 Integração com serviços externos ou módulos internos');
+                if (icon_hotfix.length > 0) changes.push('🚑 Correção emergencial em produção');
+                if (icon_experiment.length > 0) changes.push('🧑‍🔧 Experimentação ou protótipo');
+                if (icon_i18n.length > 0) changes.push('🌐 Internacionalização ou localização');
+                if (icon_release.length > 0) changes.push('📢 Lançamentos de novas versões ou atualizações');
+                if (icon_discussion.length > 0) changes.push('💬 Tópicos que exigem discussão e brainstorm');
+                if (icon_idea.length > 0) changes.push('💡 Ideias iniciais que podem se tornar tarefas futuras');
+                if (icon_question.length > 0) changes.push('❓ Dúvidas e pontos que precisam de feedback ou esclarecimento');
+
+                // Atualizar a variável tipoMudanca com as opções selecionadas
+                if (changes.length > 0) {
+                    tipoMudanca = changes.map(change => `> [x] ${change}`).join('\n');
+                }
+
+                return tipoMudanca;
+            }
+
+            // Modificar o corpo da PR com base nas labels
+            let updatedBody = prBody;
+
+            // Gerar a seção "Tipo de Mudança" usando a função
+            const tipoMudanca = generateTipoMudanca(icon_bug, icon_enhancement, icon_feature, icon_docs, icon_refactor, icon_test, icon_security, icon_ui, icon_config, icon_revert, icon_integration, icon_hotfix, icon_experiment, icon_i18n, icon_release, icon_discussion, icon_idea, icon_question);
+
+            // Substituir ou atualizar o corpo do PR com a seção "Tipo de Mudança"
+            //const prUpdateBody = `${context.payload.pull_request.body}\n\n### Tipo de Mudança\n${tipoMudanca}`;
+            updatedBody = updatedBody.replace(/### 🔧 Tipo de Mudança([\s\S]*?)###/g, `### 🔧 Tipo de Mudança\n${tipoMudanca}\n\n###`);
+
+            // Atualizar o corpo da PR com as novas informações
+            await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                body: updatedBody,
+            });

@@ -1,0 +1,37 @@
+export interface CryptoRow {
+  chart?: string;
+  id: number | null;
+  symbol: string | null;
+  rawSymbol: string | null;
+  marketType: string | null;
+  imgurl: string | null;
+  active: boolean | null;
+  priceChange_1m: string;
+  priceChange_5m: string;
+  priceChange_15m: string;
+  priceChange_1h: string;
+  priceChange_1d: string;
+  pullbackEntry_5m: string | null;
+  pullbackEntry_15m: string | null;
+  pullbackEntry_1h: string | null;
+  pullbackEntry_4h: string | null;
+  pullbackEntry_1d: string | null;
+  superTrend4h_5m: string | null;
+  superTrend4h_15m: string | null;
+  superTrend4h_1h: string | null;
+  trueRange_1m: string;
+  trueRange_5m: string;
+  trueRange_15m: string;
+  trueRange_1h: string;
+  rsi_5m: number;
+  rsi_15m: number;
+  rsi_1h: number;
+  rsi_4h: number;
+  rsi_1d: number;
+  ematrend_15m: string;
+  ematrend_1h: string;
+  ematrend_4h: string;
+  ematrend_1d: string;
+  bot: string | null;
+  market: string | null;
+}

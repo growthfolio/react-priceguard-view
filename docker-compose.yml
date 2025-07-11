@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # Aplicação React em desenvolvimento
+  price-guard-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: price-guard-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - REACT_APP_SKIP_AUTH=true
+      - REACT_APP_GOOGLE_CLIENT_ID=${REACT_APP_GOOGLE_CLIENT_ID:-your_google_client_id_here}
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:8080}
+    stdin_open: true
+    tty: true
+    networks:
+      - price-guard-network
+    profiles:
+      - dev
+
+  # Aplicação React em produção
+  price-guard-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: price-guard-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - REACT_APP_SKIP_AUTH=${REACT_APP_SKIP_AUTH:-false}
+      - REACT_APP_GOOGLE_CLIENT_ID=${REACT_APP_GOOGLE_CLIENT_ID}
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:8080}
+    networks:
+      - price-guard-network
+    profiles:
+      - prod
+    restart: unless-stopped
+
+  # Nginx standalone para desenvolvimento (opcional)
+  nginx-dev:
+    image: nginx:alpine
+    container_name: price-guard-nginx-dev
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx-dev.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - price-guard-dev
+    networks:
+      - price-guard-network
+    profiles:
+      - dev-nginx
+
+networks:
+  price-guard-network:
+    driver: bridge
+
+volumes:
+  node_modules:
