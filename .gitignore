@@ -29,6 +29,10 @@ docs/*
 *.swo
 *~
 
+# GitHub workflow files
+/.github/
+.github/*
+
 # temp files
 estrutura.txt
 *.tmp
