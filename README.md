@@ -347,7 +347,7 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 ## 👥 Equipe
 
-**Desenvolvido por [Felipe Macedo](https://github.com/felipe-macedo)**
+**Desenvolvido por [Felipe Macedo](https://github.com/felipemacedo1)**
 
 ### 🌟 Funcionalidades Futuras
 
@@ -365,10 +365,11 @@ Encontrou um bug? [Abra uma issue](https://github.com/growthfolio/react-pricegua
 
 ### 💬 Suporte
 
-- 📧 Email: support@priceguard.dev
+- 📧 Email: contato.dev.macedo@gmail.com
+<!--
 - 💬 Discord: [PriceGuard Community](https://discord.gg/priceguard)
 - 📚 Documentação: [docs.priceguard.dev](https://docs.priceguard.dev)
-
+-->
 ---
 
 <div align="center">
