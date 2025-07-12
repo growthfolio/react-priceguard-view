@@ -2,7 +2,7 @@ import { toast } from "react-toastify";
 import { toastAlert, ToastType, MESSAGES } from "../utils/toastAlert";
 import { sessionService } from "./sessionService";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
 export const apiClient = async (endpoint: string, options: RequestInit = {}) => {
   const token = sessionService.getToken();

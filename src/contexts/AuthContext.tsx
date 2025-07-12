@@ -5,8 +5,16 @@ import { sessionService } from "../services/sessionService";
 import { toastAlert, ToastType, MESSAGES } from "../utils/toastAlert";
 import { toast } from "react-toastify";
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  picture: string;
+  avatar?: string;
+}
+
 interface AuthContextType {
-  user: any;
+  user: User | null;
   loginWithGoogle: (credential: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -16,7 +24,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<any | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -54,9 +62,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initializeAuth = () => {
       // Se SKIP_AUTH está habilitado, simula usuário autenticado
       if (skipAuth) {
-        const mockUser = {
+        const mockUser: User = {
           id: "test-user",
-          name: "Felipe Macedo",
+          name: "Felipe Macedo (Teste)",
           email: "test@example.com",
           picture: "/img/perfil-wpp.jpeg",
           avatar: "/img/perfil-wpp.jpeg"
@@ -72,8 +80,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (storedToken && storedToken !== "null") {
         if (isTokenValid(storedToken)) {
           const decodedUser = decodeJWT(storedToken);
-          setUser(decodedUser);
-          setIsAuthenticated(true);
+          if (decodedUser) {
+            setUser(decodedUser as User);
+            setIsAuthenticated(true);
+          }
         } else {
           if (!toast.isActive("session-expired")) {
             toastAlert(MESSAGES.AUTH.SESSION_EXPIRED, ToastType.ERROR, "session-expired");
@@ -90,9 +100,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithGoogle = async (credential: string) => {
     // Se está no modo de teste, simula login bem-sucedido
     if (skipAuth) {
-      const mockUser = {
+      const mockUser: User = {
         id: "test-user",
-        name: "Felipe Macedo",
+        name: "Felipe Macedo (Teste)",
         email: "test@example.com",
         picture: "/img/perfil-wpp.jpeg",
         avatar: "/img/perfil-wpp.jpeg"
@@ -104,10 +114,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toastAlert(MESSAGES.AUTH.LOGIN_SUCCESS, ToastType.SUCCESS, "login-success");
       }
 
+      // Simula um delay para mostrar loading
       setTimeout(() => {
         navigate("/home");
         setLoading(false);
-      }, 1000);
+      }, 500);
       return;
     }
 
@@ -118,8 +129,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const token = sessionService.getToken();
       if (token && isTokenValid(token)) {
         const decodedUser = decodeJWT(token);
-        setUser(decodedUser);
-        setIsAuthenticated(true);
+        if (decodedUser) {
+          setUser(decodedUser as User);
+          setIsAuthenticated(true);
+        }
 
         if (!toast.isActive("login-success")) {
           toastAlert(MESSAGES.AUTH.LOGIN_SUCCESS, ToastType.SUCCESS, "login-success");
