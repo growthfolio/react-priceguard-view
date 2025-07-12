@@ -1,4 +1,4 @@
-import { CryptoData, CryptoRow } from "../models/crypto";
+import { CryptoRow } from "../models/crypto";
 import { normalizeCryptoData, transformToCryptoRow } from "../models/crypto/normalizeCryptoRow";
 
 export class WebSocketService {
@@ -6,7 +6,7 @@ export class WebSocketService {
   private onDataReceived: ((data: CryptoRow[]) => void) | null = null;
   private reconnectTimeout: number | null = null;
 
-  private readonly url: string = "ws://localhost:8080/ws/dashboard";
+  private readonly url: string = process.env.REACT_APP_WS_URL || "ws://localhost:8080/ws/dashboard";
 
   connect(onMessage?: (message: MessageEvent) => void) {
     this.socket = new WebSocket(this.url);

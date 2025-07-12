@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { 
   User, 
   Gear, 
-  Activity, 
+  TrendUp, 
   Camera, 
   Shield,
   Bell,
@@ -26,7 +26,7 @@ const ProfilePage: React.FC = () => {
   const tabs = [
     { id: "profile", label: "Perfil", icon: User },
     { id: "settings", label: "Configurações", icon: Gear },
-    { id: "activity", label: "Atividades", icon: Activity },
+    { id: "activity", label: "Atividades", icon: TrendUp },
   ];
 
   const stats = [

@@ -1,13 +1,15 @@
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import LoginPage from "../pages/login/LoginPage";
-import HomePage from "../pages/home/HomePage";
-import ProfilePage from "../pages/profile/ProfilePage";
 import ProtectedRoute from "./ProtectedRoute";
-import MarketsPage from "../pages/market/MarketsPage";
 import { PageLoading } from "../components/ui";
 import { useAuth } from "../contexts/AuthContext";
 import { WebSocketProvider } from "../contexts/WebSocketContext";
+
+// Lazy loading das páginas
+const LoginPage = lazy(() => import("../pages/login/LoginPage"));
+const HomePage = lazy(() => import("../pages/home/HomePage"));
+const ProfilePage = lazy(() => import("../pages/profile/ProfilePage"));
+const MarketsPage = lazy(() => import("../pages/market/MarketsPage"));
 
 const AppRoutes: React.FC = () => {
   const { loading } = useAuth();
@@ -20,49 +22,50 @@ const AppRoutes: React.FC = () => {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to={skipAuth ? "/home" : "/login"} />} />
+    <Suspense fallback={<PageLoading message="Carregando página..." />}>
+      <Routes>
+        <Route path="/" element={<Navigate to={skipAuth ? "/home" : "/login"} />} />
 
-      {/* Rotas públicas */}
-      <Route path="/login" element={<LoginPage />} />
+        {/* Rotas públicas */}
+        <Route path="/login" element={<LoginPage />} />
 
-      {/* Rotas protegidas */}
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <ProfilePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/home"
-        element={
-          <ProtectedRoute>
-            <HomePage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/market"
-        element={
-          <WebSocketProvider>
-          <ProtectedRoute>
-            <MarketsPage />
-          </ProtectedRoute>
-          </WebSocketProvider>
-
-        }
-      />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <div>Bem-vindo ao Dashboard</div>
-          </ProtectedRoute>
-        }
-      />
-    </Routes>
+        {/* Rotas protegidas */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute>
+              <HomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/market"
+          element={
+            <WebSocketProvider>
+              <ProtectedRoute>
+                <MarketsPage />
+              </ProtectedRoute>
+            </WebSocketProvider>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <div>Bem-vindo ao Dashboard</div>
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </Suspense>
   );
 };
 

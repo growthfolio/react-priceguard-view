@@ -137,7 +137,7 @@ const LoginPage: React.FC = () => {
               </div>
 
               <div className="space-y-6">
-                {skipAuth && (
+                {skipAuth ? (
                   <button
                     onClick={handleTestLogin}
                     className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all duration-200 group"
@@ -149,29 +149,31 @@ const LoginPage: React.FC = () => {
                       className="ml-2 group-hover:animate-pulse"
                     />
                   </button>
+                ) : (
+                  <>
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-neutral-300"></div>
+                      </div>
+                      <div className="relative flex justify-center text-sm">
+                        <span className="px-2 bg-white text-neutral-500">
+                          ou continue com
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-center">
+                      <GoogleLogin
+                        onSuccess={handleSuccess}
+                        onError={handleError}
+                        useOneTap={false}
+                        theme="outline"
+                        size="large"
+                        width="100%"
+                      />
+                    </div>
+                  </>
                 )}
-
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-neutral-300"></div>
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-neutral-500">
-                      ou continue com
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex justify-center">
-                  <GoogleLogin
-                    onSuccess={handleSuccess}
-                    onError={handleError}
-                    useOneTap={false}
-                    theme="outline"
-                    size="large"
-                    width="100%"
-                  />
-                </div>
               </div>
 
               <div className="mt-8 text-center space-y-2">
