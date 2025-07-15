@@ -13,7 +13,7 @@ export interface User {
 export interface UserSettings {
   id: string;
   user_id: string;
-  theme: "dark" | "light";
+  theme: "dark" | "light" | "system";
   default_timeframe: "1m" | "5m" | "15m" | "1h" | "4h" | "1d";
   default_view: "overview" | "detailed" | "compact";
   notifications_email: boolean;
