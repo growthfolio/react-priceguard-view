@@ -8,8 +8,12 @@ import { WebSocketProvider } from "../contexts/WebSocketContext";
 // Lazy loading das páginas
 const LoginPage = lazy(() => import("../pages/login/LoginPage"));
 const HomePage = lazy(() => import("../pages/home/HomePage"));
+const DashboardPage = lazy(() => import("../pages/dashboard/DashboardPage"));
 const ProfilePage = lazy(() => import("../pages/profile/ProfilePage"));
 const MarketsPage = lazy(() => import("../pages/market/MarketsPage"));
+const AlertsPage = lazy(() => import("../pages/alerts/AlertsPage"));
+const NotificationsPage = lazy(() => import("../pages/notifications/NotificationsPage"));
+const TradingViewPage = lazy(() => import("../pages/trading/TradingViewPage"));
 
 const AppRoutes: React.FC = () => {
   const { loading } = useAuth();
@@ -59,9 +63,37 @@ const AppRoutes: React.FC = () => {
         <Route
           path="/dashboard"
           element={
+            <WebSocketProvider>
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            </WebSocketProvider>
+          }
+        />
+        <Route
+          path="/alerts"
+          element={
             <ProtectedRoute>
-              <div>Bem-vindo ao Dashboard</div>
+              <AlertsPage />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <NotificationsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/trading/:symbol?"
+          element={
+            <WebSocketProvider>
+              <ProtectedRoute>
+                <TradingViewPage />
+              </ProtectedRoute>
+            </WebSocketProvider>
           }
         />
       </Routes>
