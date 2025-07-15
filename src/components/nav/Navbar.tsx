@@ -17,6 +17,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useNotifications } from "../../contexts/NotificationContext";
 import { useWebSocket } from "../../contexts/WebSocketContext";
 import { NotificationBadge } from "../notifications";
+import { ThemeToggle } from "../ui";
 import LogoPriceGuard from "../../utils/LogoPriceGuard";
 
 function NavBar() {
@@ -108,6 +109,9 @@ function NavBar() {
 
             {/* Actions */}
             <div className="flex items-center space-x-2">
+              
+              {/* Theme Toggle */}
+              <ThemeToggle variant="compact" />
               
               {/* Notifications */}
               <div className="relative">

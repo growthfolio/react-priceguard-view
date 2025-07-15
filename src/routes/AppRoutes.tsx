@@ -5,6 +5,7 @@ import { PageLoading } from "../components/ui";
 import { useAuth } from "../contexts/AuthContext";
 import { WebSocketProvider } from "../contexts/WebSocketContext";
 import { NotificationProvider } from "../contexts/NotificationContext";
+import { ThemeProvider } from "../contexts/ThemeContext";
 
 // Lazy loading das páginas
 const LoginPage = lazy(() => import("../pages/login/LoginPage"));
@@ -27,9 +28,10 @@ const AppRoutes: React.FC = () => {
   }
 
   return (
-    <NotificationProvider>
-      <Suspense fallback={<PageLoading message="Carregando página..." />}>
-        <Routes>
+    <ThemeProvider>
+      <NotificationProvider>
+        <Suspense fallback={<PageLoading message="Carregando página..." />}>
+          <Routes>
           <Route path="/" element={<Navigate to={skipAuth ? "/home" : "/login"} />} />
 
           {/* Rotas públicas */}
@@ -101,6 +103,7 @@ const AppRoutes: React.FC = () => {
         </Routes>
       </Suspense>
     </NotificationProvider>
+    </ThemeProvider>
   );
 };
 
