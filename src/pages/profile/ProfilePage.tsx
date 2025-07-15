@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   User, 
   Gear, 
@@ -14,14 +14,65 @@ import {
 } from "@phosphor-icons/react";
 import { useAuth } from "../../contexts/AuthContext";
 import { Card, Button } from "../../components/ui";
+import { userService } from "../../services/userService";
+import { alertService } from "../../services/alertService";
+import { notificationService } from "../../services/notificationService";
+import { UserSettings, Alert, Notification } from "../../models";
 
 const ProfilePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [riskLimitPercent, setRiskLimitPercent] = useState(2);
   const [positionLimit, setPositionLimit] = useState(5);
+  const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
+  const [recentAlerts, setRecentAlerts] = useState<Alert[]>([]);
+  const [recentNotifications, setRecentNotifications] = useState<Notification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const { user } = useAuth();
 
   const mockWallet = 125000;
+
+  // Load user data on component mount
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (!user) return;
+
+      try {
+        setLoading(true);
+        const [settingsResponse, alertsResponse, notificationsResponse] = await Promise.all([
+          userService.getUserSettings(),
+          alertService.getAlerts({ limit: 5 }),
+          notificationService.getNotifications({ limit: 5 })
+        ]);
+
+        setUserSettings(settingsResponse.data);
+        setRecentAlerts(alertsResponse.data.alerts || []);
+        setRecentNotifications(notificationsResponse.data.notifications || []);
+      } catch (error) {
+        console.error('Failed to load user data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, [user]);
+
+  // Save user settings
+  const handleSaveSettings = async (newSettings: Partial<UserSettings>) => {
+    if (!userSettings) return;
+
+    try {
+      setSaving(true);
+      const updatedSettings = { ...userSettings, ...newSettings };
+      const response = await userService.updateUserSettings(updatedSettings);
+      setUserSettings(response.data);
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const tabs = [
     { id: "profile", label: "Perfil", icon: User },
@@ -30,10 +81,30 @@ const ProfilePage: React.FC = () => {
   ];
 
   const stats = [
-    { label: "Alertas Ativos", value: "12", icon: Bell, color: "text-primary-600" },
-    { label: "Trades Realizados", value: "347", icon: ChartLine, color: "text-secondary-600" },
-    { label: "Taxa de Sucesso", value: "68%", icon: CheckCircle, color: "text-success" },
-    { label: "Risk Score", value: "Baixo", icon: Shield, color: "text-warning" }
+    { 
+      label: "Alertas Ativos", 
+      value: loading ? "..." : recentAlerts.filter(alert => alert.is_active).length.toString(), 
+      icon: Bell, 
+      color: "text-primary-600" 
+    },
+    { 
+      label: "Total de Alertas", 
+      value: loading ? "..." : recentAlerts.length.toString(), 
+      icon: ChartLine, 
+      color: "text-secondary-600" 
+    },
+    { 
+      label: "Notificações", 
+      value: loading ? "..." : recentNotifications.filter(notif => !notif.is_read).length.toString(), 
+      icon: CheckCircle, 
+      color: "text-success" 
+    },
+    { 
+      label: "Perfil de Risco", 
+      value: userSettings?.risk_profile || "Moderado", 
+      icon: Shield, 
+      color: "text-warning" 
+    }
   ];
 
   const ProfileSection = () => (

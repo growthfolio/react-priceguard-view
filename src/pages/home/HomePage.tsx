@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { 
   Bell, 
@@ -12,9 +12,49 @@ import {
   Globe
 } from "@phosphor-icons/react";
 import { useAuth } from "../../contexts/AuthContext";
+import { alertService } from "../../services/alertService";
+import { notificationService } from "../../services/notificationService";
+import { cryptoService } from "../../services/cryptoService";
 
 const HomePage: React.FC = () => {
   const { user } = useAuth();
+  const [userStats, setUserStats] = useState({
+    totalAlerts: 0,
+    activeAlerts: 0,
+    unreadNotifications: 0,
+    favoriteCryptos: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  // Load user statistics from API
+  useEffect(() => {
+    const loadUserStats = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const [alertsResponse, notificationsResponse] = await Promise.all([
+          alertService.getAlerts({ limit: 1000 }), // Get all to count
+          notificationService.getNotifications({ limit: 1000, is_read: false })
+        ]);
+
+        setUserStats({
+          totalAlerts: alertsResponse.data.total || 0,
+          activeAlerts: alertsResponse.data.alerts?.filter(alert => alert.is_active).length || 0,
+          unreadNotifications: notificationsResponse.data.total || 0,
+          favoriteCryptos: user.settings?.favorite_symbols?.length || 0
+        });
+      } catch (error) {
+        console.error('Failed to load user stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserStats();
+  }, [user]);
 
   const features = [
     {
@@ -43,7 +83,12 @@ const HomePage: React.FC = () => {
     }
   ];
 
-  const stats = [
+  const stats = user ? [
+    { label: "Meus Alertas", value: loading ? "..." : userStats.totalAlerts.toString(), icon: Bell },
+    { label: "Alertas Ativos", value: loading ? "..." : userStats.activeAlerts.toString(), icon: Lightning },
+    { label: "Notificações", value: loading ? "..." : userStats.unreadNotifications.toString(), icon: Users },
+    { label: "Favoritos", value: loading ? "..." : userStats.favoriteCryptos.toString(), icon: Star }
+  ] : [
     { label: "Usuários Ativos", value: "50K+", icon: Users },
     { label: "Criptomoedas", value: "500+", icon: CurrencyBtc },
     { label: "Países", value: "120+", icon: Globe },
@@ -89,21 +134,44 @@ const HomePage: React.FC = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-slide-up">
-              <Link
-                to="/market"
-                className="btn btn-primary btn-lg group shadow-soft hover:shadow-medium"
-              >
-                <ChartLine size={20} />
-                <span>Explorar Mercado</span>
-                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </Link>
-              
-              <Link
-                to="/dashboard"
-                className="btn btn-outline-primary btn-lg text-white border-white hover:bg-white hover:text-neutral-900"
-              >
-                Ver Dashboard
-              </Link>
+              {user ? (
+                <>
+                  <Link
+                    to="/dashboard"
+                    className="btn btn-primary btn-lg group shadow-soft hover:shadow-medium"
+                  >
+                    <ChartLine size={20} />
+                    <span>Ir para Dashboard</span>
+                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                  
+                  <Link
+                    to="/alerts"
+                    className="btn btn-outline-primary btn-lg text-white border-white hover:bg-white hover:text-neutral-900"
+                  >
+                    <Bell size={16} />
+                    Gerenciar Alertas
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/market"
+                    className="btn btn-primary btn-lg group shadow-soft hover:shadow-medium"
+                  >
+                    <ChartLine size={20} />
+                    <span>Explorar Mercado</span>
+                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                  
+                  <Link
+                    to="/dashboard"
+                    className="btn btn-outline-primary btn-lg text-white border-white hover:bg-white hover:text-neutral-900"
+                  >
+                    Ver Dashboard
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -220,17 +288,33 @@ const HomePage: React.FC = () => {
             
             <div className="flex flex-wrap gap-3 mt-6 md:mt-0">
               <Link
-                to="/market"
-                className="btn-primary btn-sm"
-              >
-                Mercado
-              </Link>
-              <Link
                 to="/dashboard"
-                className="btn-secondary btn-sm"
+                className="btn-primary btn-sm"
               >
                 Dashboard
               </Link>
+              <Link
+                to="/market"
+                className="btn-secondary btn-sm"
+              >
+                Mercado
+              </Link>
+              {user && (
+                <>
+                  <Link
+                    to="/alerts"
+                    className="btn-outline btn-sm"
+                  >
+                    Alertas
+                  </Link>
+                  <Link
+                    to="/notifications"
+                    className="btn-outline btn-sm"
+                  >
+                    Notificações
+                  </Link>
+                </>
+              )}
               <Link
                 to="/profile"
                 className="btn-outline btn-sm"

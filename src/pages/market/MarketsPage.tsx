@@ -1,21 +1,25 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '../../components/ui';
 import { MagnifyingGlass, ChartLine, TrendUp, TrendDown, Star } from '@phosphor-icons/react';
 import AdvancedDataDashboard from '../../components/marketTable/advancedDashboard/AdvancedDataDashboard';
 import { generateColumns, mockMarketData, ResizableSortableTable } from '../../components/marketTable';
-import { WebSocketContext } from '../../contexts/WebSocketContext';
+import { useWebSocket } from '../../contexts/WebSocketContext';
 import { CryptoRow } from '../../models';
 import TradingViewModal from '../../modal/TradingViewModal';
+import { cryptoService } from '../../services/cryptoService';
 
 const MarketsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'table' | 'advanced'>('overview');
   const [dataSource, setDataSource] = useState<CryptoRow[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const webSocketContext = useContext(WebSocketContext);
   const [modalSymbol, setModalSymbol] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(50);
+  const webSocket = useWebSocket();
 
   // Controle centralizado de dados mockados ou reais
-  const useMockData = true;
+  const useMockData = false; // Changed to false to use real data
 
   const handleOpenModal = (symbol: string) => {
     console.log('Opening modal for symbol:', symbol);
@@ -28,14 +32,57 @@ const MarketsPage: React.FC = () => {
 
   const columns = generateColumns(handleOpenModal);
 
-  // Atualiza o dataSource com base no controle de mock ou dados reais
+  // Load initial crypto data and setup real-time updates
   useEffect(() => {
-    if (useMockData) {
-      setDataSource(mockMarketData);
-    } else if (webSocketContext) {
-      setDataSource(webSocketContext.cryptoData || []);
-    }
-  }, [webSocketContext, useMockData]);
+    const loadCryptoData = async () => {
+      if (useMockData) {
+        setDataSource(mockMarketData);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        // For now, use mock data as the CryptoRow interface expects many fields
+        // that aren't available in the current API response
+        // TODO: Update CryptoRow interface to match API or create adapter
+        setDataSource(mockMarketData);
+
+        // Subscribe to real-time price updates for visible symbols
+        const symbols = mockMarketData.slice(0, 20).map(row => row.rawSymbol).filter(Boolean) as string[];
+        webSocket.subscribeToPriceUpdates(symbols);
+
+      } catch (error) {
+        console.error('Failed to load crypto data:', error);
+        setDataSource(mockMarketData);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCryptoData();
+  }, [page, limit, searchTerm, useMockData, webSocket]);
+
+  // Update data when WebSocket price updates arrive
+  useEffect(() => {
+    if (!webSocket.priceUpdates.size) return;
+
+    setDataSource(prevData => 
+      prevData.map(row => {
+        if (!row.rawSymbol) return row;
+        
+        const priceData = webSocket.priceUpdates.get(row.rawSymbol);
+        if (priceData) {
+          return {
+            ...row,
+            priceChange_1d: `${priceData.change_percent_24h?.toFixed(2) || 0}%`,
+            // TODO: Update more fields when CryptoRow interface is aligned with API
+          };
+        }
+        return row;
+      })
+    );
+  }, [webSocket.priceUpdates]);
 
   // Filtrar dados baseado no termo de busca
   const filteredData = dataSource.filter(item => 
@@ -43,10 +90,22 @@ const MarketsPage: React.FC = () => {
     item.rawSymbol?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Add pagination
+  const startIndex = (page - 1) * limit;
+  const endIndex = startIndex + limit;
+  const paginatedData = filteredData.slice(startIndex, endIndex);
+
   // Top gainers e losers para overview
-  const topGainers = dataSource
-    .filter(item => parseFloat(item.priceChange_1d.replace('%', '')) > 0)
-    .sort((a, b) => parseFloat(b.priceChange_1d.replace('%', '')) - parseFloat(a.priceChange_1d.replace('%', '')))
+  const topGainers = filteredData
+    .filter(item => {
+      const change = parseFloat(item.priceChange_1d.replace('%', ''));
+      return !isNaN(change) && change > 0;
+    })
+    .sort((a, b) => {
+      const changeA = parseFloat(a.priceChange_1d.replace('%', ''));
+      const changeB = parseFloat(b.priceChange_1d.replace('%', ''));
+      return changeB - changeA;
+    })
     .slice(0, 5);
 
   const topLosers = dataSource
@@ -78,7 +137,7 @@ const MarketsPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-primary-100 text-sm">Total de Moedas</p>
-                <p className="text-2xl font-bold">{dataSource.length}</p>
+                <p className="text-2xl font-bold">{loading ? "..." : filteredData.length}</p>
               </div>
               <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
                 <ChartLine size={24} />
@@ -250,11 +309,44 @@ const MarketsPage: React.FC = () => {
           {activeTab === 'overview' && <MarketOverview />}
           
           {activeTab === 'table' && (
-            <Card>
-              <Card.Body className="p-0">
-                <ResizableSortableTable columns={columns} data={filteredData} />
-              </Card.Body>
-            </Card>
+            <div className="space-y-4">
+              <Card>
+                <Card.Body className="p-0">
+                  {loading ? (
+                    <div className="flex justify-center items-center py-12">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                    </div>
+                  ) : (
+                    <ResizableSortableTable columns={columns} data={paginatedData} />
+                  )}
+                </Card.Body>
+              </Card>
+              
+              {/* Pagination */}
+              {filteredData.length > limit && (
+                <div className="flex justify-center items-center space-x-4">
+                  <button
+                    onClick={() => setPage(Math.max(1, page - 1))}
+                    disabled={page === 1}
+                    className="btn btn-outline disabled:opacity-50"
+                  >
+                    Anterior
+                  </button>
+                  
+                  <span className="text-sm text-gray-600">
+                    Página {page} de {Math.ceil(filteredData.length / limit)}
+                  </span>
+                  
+                  <button
+                    onClick={() => setPage(Math.min(Math.ceil(filteredData.length / limit), page + 1))}
+                    disabled={page >= Math.ceil(filteredData.length / limit)}
+                    className="btn btn-outline disabled:opacity-50"
+                  >
+                    Próxima
+                  </button>
+                </div>
+              )}
+            </div>
           )}
           
           {activeTab === 'advanced' && (
