@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { 
   List, 
   Bell, 
@@ -9,9 +9,14 @@ import {
   Gear, 
   SignOut,
   X,
-  TrendUp
+  TrendUp,
+  Warning,
+  CheckCircle
 } from "@phosphor-icons/react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useNotifications } from "../../contexts/NotificationContext";
+import { useWebSocket } from "../../contexts/WebSocketContext";
+import { NotificationBadge } from "../notifications";
 import LogoPriceGuard from "../../utils/LogoPriceGuard";
 
 function NavBar() {
@@ -20,29 +25,42 @@ function NavBar() {
   const [profilePanelOpen, setProfilePanelOpen] = useState(false);
 
   const { logout, user } = useAuth();
+  const { unreadCount } = useNotifications();
+  const webSocket = useWebSocket();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const navigation = [
     { name: 'Home', href: '/home', icon: House },
     { name: 'Mercado', href: '/market', icon: ChartLine },
     { name: 'Dashboard', href: '/dashboard', icon: TrendUp },
+    { name: 'Alertas', href: '/alerts', icon: Bell },
+    { name: 'Notificações', href: '/notifications', icon: Bell },
   ];
 
   const isActiveRoute = (path: string) => location.pathname === path;
 
-  const notifications = [
-    { id: 1, title: "Bitcoin subiu 5% na última hora", time: "2 min atrás", type: "success" },
-    { id: 2, title: "Ethereum atingiu novo suporte", time: "10 min atrás", type: "info" },
-    { id: 3, title: "Alerta configurado com sucesso", time: "1h atrás", type: "warning" },
-  ];
+  // Get recent notifications from WebSocket
+  const recentNotifications = webSocket.notifications.slice(-5).reverse();
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'success': return '🟢';
-      case 'warning': return '🟡';
-      case 'info': return '🔵';
-      default: return '📊';
+  const getNotificationIcon = (priority: string) => {
+    switch (priority) {
+      case 'high': return <Warning size={16} className="text-red-500" />;
+      case 'medium': return <Bell size={16} className="text-yellow-500" />;
+      case 'low': return <CheckCircle size={16} className="text-green-500" />;
+      default: return <Bell size={16} className="text-blue-500" />;
     }
+  };
+
+  const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    
+    if (diff < 60000) return 'Agora';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}m atrás`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h atrás`;
+    return date.toLocaleDateString();
   };
 
   return (
@@ -97,12 +115,14 @@ function NavBar() {
                   onClick={() => setNotificationPanelOpen(!notificationPanelOpen)}
                   className="relative p-2.5 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-xl transition-all duration-200 group"
                 >
-                  <Bell size={20} className="group-hover:scale-110 transition-transform" />
-                  {notifications.length > 0 && (
-                    <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                      {notifications.length}
-                    </span>
-                  )}
+                  <NotificationBadge 
+                    count={unreadCount} 
+                    variant="danger" 
+                    size="sm"
+                    pulse={unreadCount > 0}
+                  >
+                    <Bell size={20} className="group-hover:scale-110 transition-transform" />
+                  </NotificationBadge>
                 </button>
 
                 {/* Notification Dropdown */}
@@ -110,7 +130,9 @@ function NavBar() {
                   <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-strong border border-gray-200 z-50 animate-slide-down">
                     <div className="p-4 border-b border-gray-100">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-900">Notificações</h3>
+                        <h3 className="font-semibold text-gray-900">
+                          Notificações {unreadCount > 0 && `(${unreadCount})`}
+                        </h3>
                         <button
                           onClick={() => setNotificationPanelOpen(false)}
                           className="p-1 hover:bg-gray-100 rounded"
@@ -120,23 +142,51 @@ function NavBar() {
                       </div>
                     </div>
                     <div className="max-h-64 overflow-y-auto scrollbar">
-                      {notifications.map((notification) => (
-                        <div key={notification.id} className="p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                          <div className="flex items-start space-x-3">
-                            <span className="text-lg">{getNotificationIcon(notification.type)}</span>
-                            <div className="flex-1">
-                              <p className="text-sm font-medium text-gray-900">{notification.title}</p>
-                              <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
+                      {recentNotifications.length > 0 ? (
+                        recentNotifications.map((notification) => (
+                          <div 
+                            key={notification.id} 
+                            className={`p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer ${
+                              !notification.is_read ? 'bg-blue-50' : ''
+                            }`}
+                            onClick={() => navigate('/notifications')}
+                          >
+                            <div className="flex items-start space-x-3">
+                              {getNotificationIcon(notification.priority)}
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-sm ${!notification.is_read ? 'font-semibold' : 'font-medium'} text-gray-900 truncate`}>
+                                  {notification.message}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {formatTime(notification.created_at)}
+                                </p>
+                              </div>
+                              {!notification.is_read && (
+                                <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1"></div>
+                              )}
                             </div>
                           </div>
+                        ))
+                      ) : (
+                        <div className="p-8 text-center text-gray-500">
+                          <Bell size={32} className="mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">Nenhuma notificação</p>
                         </div>
-                      ))}
+                      )}
                     </div>
-                    <div className="p-3 border-t border-gray-100">
-                      <button className="w-full text-sm text-primary-600 hover:text-primary-700 font-medium">
-                        Ver todas as notificações
-                      </button>
-                    </div>
+                    {recentNotifications.length > 0 && (
+                      <div className="p-3 border-t border-gray-100">
+                        <button
+                          onClick={() => {
+                            navigate('/notifications');
+                            setNotificationPanelOpen(false);
+                          }}
+                          className="w-full text-center text-sm text-primary-600 hover:text-primary-700 font-medium"
+                        >
+                          Ver todas as notificações
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

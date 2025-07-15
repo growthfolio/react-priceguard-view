@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 import Navbar from '../nav/Navbar';
 import Footer from '../footer/Footer';
+import { NotificationContainer } from '../notifications';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,6 +19,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         {children}
       </main>
       {!isLoginPage && <Footer />}
+      <NotificationContainer />
     </div>
   );
 };

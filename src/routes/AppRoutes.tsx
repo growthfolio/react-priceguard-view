@@ -4,6 +4,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import { PageLoading } from "../components/ui";
 import { useAuth } from "../contexts/AuthContext";
 import { WebSocketProvider } from "../contexts/WebSocketContext";
+import { NotificationProvider } from "../contexts/NotificationContext";
 
 // Lazy loading das páginas
 const LoginPage = lazy(() => import("../pages/login/LoginPage"));
@@ -26,78 +27,80 @@ const AppRoutes: React.FC = () => {
   }
 
   return (
-    <Suspense fallback={<PageLoading message="Carregando página..." />}>
-      <Routes>
-        <Route path="/" element={<Navigate to={skipAuth ? "/home" : "/login"} />} />
+    <NotificationProvider>
+      <Suspense fallback={<PageLoading message="Carregando página..." />}>
+        <Routes>
+          <Route path="/" element={<Navigate to={skipAuth ? "/home" : "/login"} />} />
 
-        {/* Rotas públicas */}
-        <Route path="/login" element={<LoginPage />} />
+          {/* Rotas públicas */}
+          <Route path="/login" element={<LoginPage />} />
 
-        {/* Rotas protegidas */}
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <ProfilePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/home"
-          element={
-            <ProtectedRoute>
-              <HomePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/market"
-          element={
-            <WebSocketProvider>
+          {/* Rotas protegidas */}
+          <Route
+            path="/profile"
+            element={
               <ProtectedRoute>
-                <MarketsPage />
+                <ProfilePage />
               </ProtectedRoute>
-            </WebSocketProvider>
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            <WebSocketProvider>
+            }
+          />
+          <Route
+            path="/home"
+            element={
               <ProtectedRoute>
-                <DashboardPage />
+                <HomePage />
               </ProtectedRoute>
-            </WebSocketProvider>
-          }
-        />
-        <Route
-          path="/alerts"
-          element={
-            <ProtectedRoute>
-              <AlertsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/notifications"
-          element={
-            <ProtectedRoute>
-              <NotificationsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/trading/:symbol?"
-          element={
-            <WebSocketProvider>
+            }
+          />
+          <Route
+            path="/market"
+            element={
+              <WebSocketProvider>
+                <ProtectedRoute>
+                  <MarketsPage />
+                </ProtectedRoute>
+              </WebSocketProvider>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <WebSocketProvider>
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              </WebSocketProvider>
+            }
+          />
+          <Route
+            path="/alerts"
+            element={
               <ProtectedRoute>
-                <TradingViewPage />
+                <AlertsPage />
               </ProtectedRoute>
-            </WebSocketProvider>
-          }
-        />
-      </Routes>
-    </Suspense>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <NotificationsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/trading/:symbol?"
+            element={
+              <WebSocketProvider>
+                <ProtectedRoute>
+                  <TradingViewPage />
+                </ProtectedRoute>
+              </WebSocketProvider>
+            }
+          />
+        </Routes>
+      </Suspense>
+    </NotificationProvider>
   );
 };
 
