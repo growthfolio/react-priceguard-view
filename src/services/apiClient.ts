@@ -10,6 +10,14 @@ interface ApiResponse<T = any> {
   error?: string;
 }
 
+interface ApiClient {
+  get<T = any>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>>;
+  post<T = any>(endpoint: string, data?: any, options?: RequestInit): Promise<ApiResponse<T>>;
+  put<T = any>(endpoint: string, data?: any, options?: RequestInit): Promise<ApiResponse<T>>;
+  delete<T = any>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>>;
+  request<T = any>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>>;
+}
+
 let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (value?: any) => void;
@@ -28,7 +36,7 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-export const apiClient = async (endpoint: string, options: RequestInit = {}): Promise<any> => {
+export const makeApiRequest = async (endpoint: string, options: RequestInit = {}): Promise<any> => {
   const token = sessionService.getToken();
   const headers = {
     ...options.headers,
@@ -48,7 +56,7 @@ export const apiClient = async (endpoint: string, options: RequestInit = {}): Pr
         }).then(() => {
           // Retry original request with new token
           const newToken = sessionService.getToken();
-          return apiClient(endpoint, {
+          return makeApiRequest(endpoint, {
             ...options,
             headers: {
               ...options.headers,
@@ -69,7 +77,7 @@ export const apiClient = async (endpoint: string, options: RequestInit = {}): Pr
         
         // Retry original request with new token
         const newToken = sessionService.getToken();
-        return apiClient(endpoint, {
+        return makeApiRequest(endpoint, {
           ...options,
           headers: {
             ...options.headers,
@@ -132,3 +140,37 @@ export const apiClient = async (endpoint: string, options: RequestInit = {}): Pr
     throw error;
   }
 };
+
+// HTTP method helpers
+const apiClient: ApiClient = {
+  async get<T = any>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
+    return await makeApiRequest(endpoint, { ...options, method: 'GET' });
+  },
+
+  async post<T = any>(endpoint: string, data?: any, options?: RequestInit): Promise<ApiResponse<T>> {
+    return await makeApiRequest(endpoint, {
+      ...options,
+      method: 'POST',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  },
+
+  async put<T = any>(endpoint: string, data?: any, options?: RequestInit): Promise<ApiResponse<T>> {
+    return await makeApiRequest(endpoint, {
+      ...options,
+      method: 'PUT',
+      body: data ? JSON.stringify(data) : undefined,
+    });
+  },
+
+  async delete<T = any>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
+    return await makeApiRequest(endpoint, { ...options, method: 'DELETE' });
+  },
+
+  async request<T = any>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
+    return await makeApiRequest(endpoint, options);
+  },
+};
+
+export { apiClient };
+export default apiClient;
