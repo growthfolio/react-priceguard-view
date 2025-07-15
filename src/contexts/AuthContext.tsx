@@ -2,16 +2,9 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useNavigate } from "react-router-dom";
 import { authService } from "../services/authService";
 import { sessionService } from "../services/sessionService";
+import { User } from "../models/User";
 import { toastAlert, ToastType, MESSAGES } from "../utils/toastAlert";
 import { toast } from "react-toastify";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  picture: string;
-  avatar?: string;
-}
 
 interface AuthContextType {
   user: User | null;
@@ -64,10 +57,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (skipAuth) {
         const mockUser: User = {
           id: "test-user",
+          google_id: "test-google-id",
           name: "Felipe Macedo (Teste)",
           email: "test@example.com",
           picture: "/img/perfil-wpp.jpeg",
-          avatar: "/img/perfil-wpp.jpeg"
+          avatar: "/img/perfil-wpp.jpeg",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         };
         setUser(mockUser);
         setIsAuthenticated(true);
@@ -76,14 +72,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const storedToken = sessionService.getToken();
+      const storedUser = sessionService.getUser();
 
-      if (storedToken && storedToken !== "null") {
+      if (storedToken && storedToken !== "null" && storedUser) {
         if (isTokenValid(storedToken)) {
-          const decodedUser = decodeJWT(storedToken);
-          if (decodedUser) {
-            setUser(decodedUser as User);
-            setIsAuthenticated(true);
-          }
+          setUser(storedUser);
+          setIsAuthenticated(true);
         } else {
           if (!toast.isActive("session-expired")) {
             toastAlert(MESSAGES.AUTH.SESSION_EXPIRED, ToastType.ERROR, "session-expired");
@@ -102,10 +96,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (skipAuth) {
       const mockUser: User = {
         id: "test-user",
+        google_id: "test-google-id",
         name: "Felipe Macedo (Teste)",
         email: "test@example.com",
         picture: "/img/perfil-wpp.jpeg",
-        avatar: "/img/perfil-wpp.jpeg"
+        avatar: "/img/perfil-wpp.jpeg",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       };
       setUser(mockUser);
       setIsAuthenticated(true);
@@ -126,13 +123,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await authService.loginWithGoogle(credential);
 
+      const storedUser = sessionService.getUser();
       const token = sessionService.getToken();
-      if (token && isTokenValid(token)) {
-        const decodedUser = decodeJWT(token);
-        if (decodedUser) {
-          setUser(decodedUser as User);
-          setIsAuthenticated(true);
-        }
+      
+      if (token && isTokenValid(token) && storedUser) {
+        setUser(storedUser);
+        setIsAuthenticated(true);
 
         if (!toast.isActive("login-success")) {
           toastAlert(MESSAGES.AUTH.LOGIN_SUCCESS, ToastType.SUCCESS, "login-success");
@@ -143,7 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setLoading(false);
         }, 2000);
       } else {
-        throw new Error("Token inválido após o login.");
+        throw new Error("Token inválido ou dados do usuário não encontrados após o login.");
       }
     } catch (error: any) {
       console.error("Erro ao autenticar:", error);
