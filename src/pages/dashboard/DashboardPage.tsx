@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Layout from "../../components/layout/Layout";
 import { Button, Card } from "../../components/ui";
 import { Loading } from "../../components/ui";
@@ -12,6 +12,7 @@ import { AlertStatistics } from "../../models/Alert";
 import { LatestPriceData } from "../../models/PriceHistory";
 import { Link } from "react-router-dom";
 import { Bell, TrendingUp, AlertTriangle, Settings, Activity } from "lucide-react";
+import { useApiCache, useDebounce } from "../../hooks/usePerformance";
 
 interface DashboardStats {
   totalAlerts: number;
@@ -25,84 +26,77 @@ const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const { connectionState, subscribeToPriceUpdates, priceUpdates, notifications } = useWebSocket();
   
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<DashboardStats>({
-    totalAlerts: 0,
-    activeAlerts: 0,
-    triggeredToday: 0,
-    unreadNotifications: 0,
-    favoriteSymbolsCount: 0,
-  });
-  const [recentPrices, setRecentPrices] = useState<LatestPriceData[]>([]);
   const [favoriteSymbols, setFavoriteSymbols] = useState<string[]>([]);
 
-  // Carrega dados iniciais do dashboard
-  useEffect(() => {
-    const loadDashboardData = async () => {
-      try {
-        setLoading(true);
-        
-        // Carrega estatísticas em paralelo
-        const [alertStats, userStats, unreadCount] = await Promise.all([
-          alertService.getAlertStats().catch(() => null),
-          userService.getUserStats().catch(() => null),
-          notificationService.getUnreadCount().catch(() => ({ data: { count: 0 } })),
-        ]);
+  // Use cached API calls for better performance
+  const { data: alertStats, loading: alertStatsLoading } = useApiCache(
+    'dashboard-alert-stats',
+    () => alertService.getAlertStats(),
+    { ttl: 60000, refreshInterval: 30000 } // Cache for 1 minute, refresh every 30 seconds
+  );
 
-        // Carrega configurações do usuário para obter favoritos
-        const userSettings = await userService.getUserSettings().catch(() => null);
+  const { data: userStats, loading: userStatsLoading } = useApiCache(
+    'dashboard-user-stats',
+    () => userService.getUserStats(),
+    { ttl: 300000 } // Cache for 5 minutes
+  );
+
+  const { data: unreadCount, loading: notificationsLoading } = useApiCache(
+    'dashboard-unread-count',
+    () => notificationService.getUnreadCount(),
+    { ttl: 30000, refreshInterval: 15000 } // Cache for 30 seconds, refresh every 15 seconds
+  );
+
+  const { data: recentPricesResponse, loading: pricesLoading } = useApiCache(
+    'dashboard-recent-prices',
+    () => cryptoService.getLatestPrices(['BTC', 'ETH', 'ADA', 'SOL', 'DOT', 'MATIC']),
+    { ttl: 10000, refreshInterval: 5000 } // Cache for 10 seconds, refresh every 5 seconds
+  );
+
+  // Compute stats with memoization
+  const stats = useMemo((): DashboardStats => {
+    return {
+      totalAlerts: alertStats?.data?.total_alerts || 0,
+      activeAlerts: alertStats?.data?.active_alerts || 0,
+      triggeredToday: alertStats?.data?.triggered_today || 0,
+      unreadNotifications: unreadCount || 0,
+      favoriteSymbolsCount: favoriteSymbols.length,
+    };
+  }, [alertStats, unreadCount, favoriteSymbols]);
+
+  const recentPrices = recentPricesResponse?.data?.prices?.slice(0, 6) || [];
+  const loading = alertStatsLoading || userStatsLoading || notificationsLoading || pricesLoading;
+
+  // Load user settings to get favorite symbols
+  useEffect(() => {
+    const loadUserSettings = async () => {
+      try {
+        const userSettings = await userService.getUserSettings();
         const favorites = userSettings?.data.favorite_symbols || ["BTC", "ETH", "ADA"];
         setFavoriteSymbols(favorites);
-
-        // Carrega preços dos favoritos
+        
+        // Subscribe to price updates for favorites
         if (favorites.length > 0) {
-          try {
-            const pricesResponse = await cryptoService.getLatestPrices(favorites);
-            setRecentPrices(pricesResponse.data.prices.slice(0, 6)); // Mostra apenas os 6 primeiros
-            
-            // Subscreve a atualizações de preço
-            subscribeToPriceUpdates(favorites);
-          } catch (error) {
-            console.error("Erro ao carregar preços dos favoritos:", error);
-          }
+          subscribeToPriceUpdates(favorites);
         }
-
-        // Atualiza estatísticas
-        setStats({
-          totalAlerts: alertStats?.data.total_alerts || 0,
-          activeAlerts: alertStats?.data.active_alerts || 0,
-          triggeredToday: alertStats?.data.triggered_today || 0,
-          unreadNotifications: typeof unreadCount === 'number' ? unreadCount : unreadCount.data.count,
-          favoriteSymbolsCount: userStats?.data.favorite_symbols_count || favorites.length,
-        });
-
       } catch (error) {
-        console.error("Erro ao carregar dados do dashboard:", error);
-      } finally {
-        setLoading(false);
+        console.error("Error loading user settings:", error);
+        setFavoriteSymbols(["BTC", "ETH", "ADA"]); // fallback
       }
     };
 
-    loadDashboardData();
+    loadUserSettings();
   }, [subscribeToPriceUpdates]);
 
-  // Atualiza preços quando há atualizações do WebSocket
-  useEffect(() => {
-    const updatedPrices = recentPrices.map(price => {
+  // Update prices when WebSocket updates arrive  
+  const updatedPrices = useMemo(() => {
+    if (!recentPrices.length) return recentPrices;
+    
+    return recentPrices.map(price => {
       const update = priceUpdates.get(price.symbol);
       return update ? { ...price, ...update } : price;
     });
-    
-    if (JSON.stringify(updatedPrices) !== JSON.stringify(recentPrices)) {
-      setRecentPrices(updatedPrices);
-    }
-  }, [priceUpdates, recentPrices]);
-
-  // Atualiza contagem de notificações quando há novas
-  useEffect(() => {
-    const unreadCount = notifications.filter(n => !n.is_read).length;
-    setStats(prev => ({ ...prev, unreadNotifications: unreadCount }));
-  }, [notifications]);
+  }, [recentPrices, priceUpdates]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -241,8 +235,8 @@ const DashboardPage: React.FC = () => {
             </div>
             
             <div className="space-y-3">
-              {recentPrices.length > 0 ? (
-                recentPrices.map((crypto) => (
+              {updatedPrices.length > 0 ? (
+                updatedPrices.map((crypto) => (
                   <div key={crypto.symbol} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <div>
                       <p className="font-medium text-gray-900 dark:text-white">

@@ -1,4 +1,10 @@
-import { apiClient } from "./apiClient";
+import { apiClient } f      const response = await apiClient.get<AlertsResponse>(`api/alerts?${queryParams.toString()}`);
+      
+      if (!response.success || !response.data) {
+        throw new Error(response.error || "Falha ao buscar alertas");
+      }
+      
+      return response.data;apiClient";
 import { 
   Alert, 
   CreateAlertPayload, 
@@ -20,7 +26,7 @@ export const alertService = {
       if (params?.alert_type) queryParams.append('alert_type', params.alert_type);
       if (params?.triggered !== undefined) queryParams.append('triggered', params.triggered.toString());
 
-      const response = await apiClient(`api/alerts?${queryParams.toString()}`);
+      const response = await apiClient.get<AlertsResponse>(`api/alerts?${queryParams.toString()}`);
       
       if (!response.success) {
         throw new Error(response.error || "Falha ao buscar alertas");

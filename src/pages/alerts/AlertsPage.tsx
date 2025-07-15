@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Layout from "../../components/layout/Layout";
 import { Button, Card } from "../../components/ui";
 import { Loading } from "../../components/ui";
@@ -6,52 +6,51 @@ import { alertService } from "../../services/alertService";
 import { Alert, AlertsParams } from "../../models/Alert";
 import { Link } from "react-router-dom";
 import { Plus, Search, Filter, Eye, EyeOff, Edit, Trash2, AlertTriangle } from "lucide-react";
+import { useApiCache, useDebounce } from "../../hooks/usePerformance";
 
 export const AlertsPage: React.FC = () => {
-  const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedAlerts, setSelectedAlerts] = useState<Set<string>>(new Set());
   const [filters, setFilters] = useState<AlertsParams>({
     page: 1,
     limit: 10,
   });
-  const [stats, setStats] = useState({
-    total: 0,
-    active: 0,
-    triggered_today: 0,
-  });
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // Carrega alertas
-  const loadAlerts = async () => {
-    try {
-      setLoading(true);
-      const [alertsResponse, statsResponse] = await Promise.all([
-        alertService.getAlerts(filters),
-        alertService.getAlertStats(),
-      ]);
+  // Debounce search term to avoid excessive API calls
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-      setAlerts(alertsResponse.data.alerts);
-      setStats({
-        total: statsResponse.data.total_alerts,
-        active: statsResponse.data.active_alerts,
-        triggered_today: statsResponse.data.triggered_today,
-      });
-    } catch (error) {
-      console.error("Erro ao carregar alertas:", error);
-    } finally {
-      setLoading(false);
-    }
+  // Memoize filters with search term
+  const finalFilters = useMemo(() => ({
+    ...filters,
+    symbol: debouncedSearchTerm || undefined,
+  }), [filters, debouncedSearchTerm]);
+
+  // Use cached API calls for better performance
+  const { data: alertsResponse, loading: alertsLoading, refresh: refreshAlerts } = useApiCache(
+    `alerts-${JSON.stringify(finalFilters)}`,
+    () => alertService.getAlerts(finalFilters),
+    { ttl: 30000 } // Cache for 30 seconds
+  );
+
+  const { data: statsResponse, loading: statsLoading } = useApiCache(
+    'alerts-stats',
+    () => alertService.getAlertStats(),
+    { ttl: 60000, refreshInterval: 30000 } // Cache for 1 minute, refresh every 30 seconds
+  );
+
+  const alerts = alertsResponse?.data?.alerts || [];
+  const stats = {
+    total: statsResponse?.data?.total_alerts || 0,
+    active: statsResponse?.data?.active_alerts || 0,
+    triggered_today: statsResponse?.data?.triggered_today || 0,
   };
-
-  useEffect(() => {
-    loadAlerts();
-  }, [filters]);
+  const loading = alertsLoading || statsLoading;
 
   // Toggle alerta ativo/inativo
   const toggleAlert = async (id: string, isActive: boolean) => {
     try {
       await alertService.updateAlert(id, { is_active: isActive });
-      loadAlerts(); // Recarrega a lista
+      refreshAlerts(); // Refresh the cache
     } catch (error) {
       console.error("Erro ao atualizar alerta:", error);
     }
@@ -65,7 +64,7 @@ export const AlertsPage: React.FC = () => {
 
     try {
       await alertService.deleteAlert(id);
-      loadAlerts(); // Recarrega a lista
+      refreshAlerts(); // Refresh the cache
     } catch (error) {
       console.error("Erro ao excluir alerta:", error);
     }
@@ -82,7 +81,7 @@ export const AlertsPage: React.FC = () => {
         await alertService.disableAlerts(Array.from(selectedAlerts));
       }
       setSelectedAlerts(new Set());
-      loadAlerts();
+      refreshAlerts();
     } catch (error) {
       console.error("Erro na operação em lote:", error);
     }
@@ -98,7 +97,7 @@ export const AlertsPage: React.FC = () => {
     try {
       await alertService.deleteAlerts(Array.from(selectedAlerts));
       setSelectedAlerts(new Set());
-      loadAlerts();
+      refreshAlerts();
     } catch (error) {
       console.error("Erro na exclusão em lote:", error);
     }
@@ -225,13 +224,16 @@ export const AlertsPage: React.FC = () => {
         <Card className="p-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
-              <input
-                type="text"
-                placeholder="Buscar por símbolo..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={filters.symbol || ""}
-                onChange={(e) => setFilters(prev => ({ ...prev, symbol: e.target.value }))}
-              />
+              <div className="relative">
+                <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar por símbolo..."
+                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
             </div>
             
             <select
