@@ -4,7 +4,31 @@ import { sessionService } from "./sessionService";
 
 const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
-export const apiClient = async (endpoint: string, options: RequestInit = {}) => {
+interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (reason?: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) {
+      reject(error);
+    } else {
+      resolve(token);
+    }
+  });
+  
+  failedQueue = [];
+};
+
+export const apiClient = async (endpoint: string, options: RequestInit = {}): Promise<any> => {
   const token = sessionService.getToken();
   const headers = {
     ...options.headers,
@@ -15,24 +39,90 @@ export const apiClient = async (endpoint: string, options: RequestInit = {}) => 
   try {
     const response = await fetch(`${BASE_URL}/${endpoint}`, { ...options, headers });
 
-    if (!response.ok) {
-      if (response.status === 401) {
+    // Handle 401 Unauthorized - Try to refresh token
+    if (response.status === 401 && token) {
+      if (isRefreshing) {
+        // If already refreshing, wait for it to complete
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then(() => {
+          // Retry original request with new token
+          const newToken = sessionService.getToken();
+          return apiClient(endpoint, {
+            ...options,
+            headers: {
+              ...options.headers,
+              Authorization: newToken ? `Bearer ${newToken}` : "",
+              "Content-Type": "application/json",
+            }
+          });
+        });
+      }
+
+      // Try to refresh token
+      isRefreshing = true;
+      
+      try {
+        const { authService } = await import("./authService");
+        await authService.refreshToken();
+        processQueue(null);
+        
+        // Retry original request with new token
+        const newToken = sessionService.getToken();
+        return apiClient(endpoint, {
+          ...options,
+          headers: {
+            ...options.headers,
+            Authorization: newToken ? `Bearer ${newToken}` : "",
+            "Content-Type": "application/json",
+          }
+        });
+      } catch (refreshError) {
+        processQueue(refreshError);
         sessionService.clearSession();
         if (!toast.isActive("session-expired")) {
           toastAlert(MESSAGES.AUTH.SESSION_EXPIRED, ToastType.ERROR, "session-expired");
         }
-        throw new Error("Não autorizado.");
+        throw new Error("Session expired");
+      } finally {
+        isRefreshing = false;
       }
+    }
 
+    if (!response.ok) {
       if (response.status >= 500) {
         if (!toast.isActive("server-error")) {
           toastAlert(MESSAGES.GENERAL.UNKNOWN_ERROR, ToastType.ERROR, "server-error");
         }
         throw new Error("Erro no servidor.");
       }
+      
+      // Try to get error message from response
+      try {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      } catch {
+        throw new Error(`HTTP ${response.status}`);
+      }
     }
 
-    return response.json();
+    // Parse response as structured format
+    const data = await response.json();
+    
+    // Handle both structured and legacy formats
+    if (typeof data === 'object' && 'success' in data) {
+      if (!data.success && data.error) {
+        throw new Error(data.error);
+      }
+      return data;
+    }
+    
+    // Legacy format - wrap in success structure
+    return {
+      success: true,
+      data: data
+    };
+
   } catch (error: any) {
     if (error.name === "TypeError") {
       if (!toast.isActive("network-error")) {
