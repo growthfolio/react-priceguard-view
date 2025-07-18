@@ -66,7 +66,7 @@ export const cryptoService = {
    */
   getLatestPrices: async (symbols: string[]): Promise<LatestPricesResponse> => {
     try {
-      const response = await apiClient("api/crypto/prices", {
+      const response = await apiClient.get("api/crypto/prices", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ symbols }),
@@ -118,7 +118,7 @@ export const cryptoService = {
    */
   getMultiSymbolHistory: async (params: PriceHistoryParams): Promise<MultiSymbolPriceHistoryResponse> => {
     try {
-      const response = await apiClient("api/crypto/history/batch", {
+      const response = await apiClient.get("api/crypto/history/batch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(params),
@@ -140,7 +140,7 @@ export const cryptoService = {
    */
   getTechnicalIndicators: async (params: IndicatorParams): Promise<IndicatorsResponse> => {
     try {
-      const response = await apiClient("api/crypto/indicators", {
+      const response = await apiClient.get("api/crypto/indicators", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(params),
@@ -165,7 +165,7 @@ export const cryptoService = {
     timeframes?: string[]
   ): Promise<IndicatorSignalsResponse> => {
     try {
-      const response = await apiClient("api/crypto/signals", {
+      const response = await apiClient.get("api/crypto/signals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ symbols, timeframes }),
@@ -190,7 +190,7 @@ export const cryptoService = {
     period: "24h" | "7d" | "30d" | "1y" = "24h"
   ): Promise<PriceStatisticsResponse> => {
     try {
-      const response = await apiClient("api/crypto/statistics", {
+      const response = await apiClient.get("api/crypto/statistics", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ symbols, period }),
@@ -255,7 +255,7 @@ export const cryptoService = {
     };
   }> => {
     try {
-      const response = await apiClient("api/crypto/symbols");
+      const response = await apiClient.get("api/crypto/symbols");
       
       if (!response.success) {
         throw new Error(response.error || "Falha ao buscar símbolos disponíveis");

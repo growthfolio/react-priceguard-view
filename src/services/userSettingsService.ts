@@ -5,7 +5,7 @@ import { sessionService } from "./sessionService";
 export const userSettingsService = {
   getProfile: async (): Promise<User> => {
     try {
-      const response = await apiClient("api/user/profile");
+      const response = await apiClient.get("api/user/profile");
       
       if (!response.success) {
         throw new Error(response.error || "Falha ao buscar perfil do usuário");
@@ -20,7 +20,7 @@ export const userSettingsService = {
 
   updateProfile: async (profileData: Partial<User>): Promise<User> => {
     try {
-      const response = await apiClient("api/user/profile", {
+      const response = await apiClient.get("api/user/profile", {
         method: "PUT",
         body: JSON.stringify(profileData),
       });
@@ -33,7 +33,14 @@ export const userSettingsService = {
       const currentUser = sessionService.getUser();
       if (currentUser) {
         const updatedUser = { ...currentUser, ...response.data };
-        localStorage.setItem("user", JSON.stringify(updatedUser));
+        // Use sessionService to save user data consistently
+        const currentTokens = {
+          access_token: sessionService.getToken() || '',
+          refresh_token: sessionService.getRefreshToken() || '',
+          expires_in: parseInt(localStorage.getItem("priceGuard_token_expires_in") || '0'),
+          token_type: "Bearer" as const
+        };
+        sessionService.saveSession(updatedUser, currentTokens);
       }
 
       return response.data;
@@ -45,7 +52,7 @@ export const userSettingsService = {
 
   getSettings: async (): Promise<UserSettings> => {
     try {
-      const response = await apiClient("api/user/settings");
+      const response = await apiClient.get("api/user/settings");
       
       if (!response.success) {
         throw new Error(response.error || "Falha ao buscar configurações do usuário");
@@ -63,7 +70,7 @@ export const userSettingsService = {
 
   updateSettings: async (settings: Partial<UserSettings>): Promise<UserSettings> => {
     try {
-      const response = await apiClient("api/user/settings", {
+      const response = await apiClient.get("api/user/settings", {
         method: "PUT",
         body: JSON.stringify(settings),
       });

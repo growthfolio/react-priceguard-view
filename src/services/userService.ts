@@ -7,7 +7,7 @@ export const userService = {
    */
   getCurrentUser: async (): Promise<{ success: boolean; data: User }> => {
     try {
-      const response = await apiClient("api/user/profile");
+      const response = await apiClient.get("api/user/profile");
       
       if (!response.success) {
         throw new Error(response.error || "Falha ao buscar perfil do usuário");
@@ -25,7 +25,7 @@ export const userService = {
    */
   updateUser: async (userData: Partial<User>): Promise<{ success: boolean; data: User }> => {
     try {
-      const response = await apiClient("api/user/profile", {
+      const response = await apiClient.get("api/user/profile", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),
@@ -47,7 +47,7 @@ export const userService = {
    */
   getUserSettings: async (): Promise<{ success: boolean; data: UserSettings }> => {
     try {
-      const response = await apiClient("api/user/settings");
+      const response = await apiClient.get("api/user/settings");
       
       if (!response.success) {
         throw new Error(response.error || "Falha ao buscar configurações do usuário");
@@ -67,7 +67,7 @@ export const userService = {
     settings: Partial<UserSettings>
   ): Promise<{ success: boolean; data: UserSettings }> => {
     try {
-      const response = await apiClient("api/user/settings", {
+      const response = await apiClient.get("api/user/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings),
@@ -141,7 +141,7 @@ export const userService = {
    */
   deleteAccount: async (): Promise<{ success: boolean }> => {
     try {
-      const response = await apiClient("api/user/account", {
+      const response = await apiClient.get("api/user/account", {
         method: "DELETE",
       });
 
@@ -171,7 +171,7 @@ export const userService = {
     };
   }> => {
     try {
-      const response = await apiClient("api/user/stats");
+      const response = await apiClient.get("api/user/stats");
       
       if (!response.success) {
         throw new Error(response.error || "Falha ao buscar estatísticas do usuário");

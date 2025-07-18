@@ -35,7 +35,7 @@ export const notificationService = {
 
   markAsRead: async (notificationIds: string[]): Promise<{ success: boolean; updated_count: number }> => {
     try {
-      const response = await apiClient("api/notifications/mark-read", {
+      const response = await apiClient.get("api/notifications/mark-read", {
         method: "POST",
         body: JSON.stringify({ notification_ids: notificationIds }),
       });
@@ -53,7 +53,7 @@ export const notificationService = {
 
   markAllAsRead: async (): Promise<{ success: boolean; updated_count: number }> => {
     try {
-      const response = await apiClient("api/notifications/mark-all-read", {
+      const response = await apiClient.get("api/notifications/mark-all-read", {
         method: "POST",
       });
 
@@ -87,7 +87,7 @@ export const notificationService = {
 
   deleteNotifications: async (notificationIds: string[]): Promise<{ success: boolean; deleted_count: number }> => {
     try {
-      const response = await apiClient("api/notifications/bulk-delete", {
+      const response = await apiClient.get("api/notifications/bulk-delete", {
         method: "POST",
         body: JSON.stringify({ notification_ids: notificationIds }),
       });
@@ -105,7 +105,7 @@ export const notificationService = {
 
   getUnreadCount: async (): Promise<number> => {
     try {
-      const response = await apiClient("api/notifications/unread-count");
+      const response = await apiClient.get("api/notifications/unread-count");
       
       if (!response.success) {
         throw new Error(response.error || "Falha ao buscar contagem de não lidas");

@@ -1,10 +1,4 @@
-import { apiClient } f      const response = await apiClient.get<AlertsResponse>(`api/alerts?${queryParams.toString()}`);
-      
-      if (!response.success || !response.data) {
-        throw new Error(response.error || "Falha ao buscar alertas");
-      }
-      
-      return response.data;apiClient";
+import { apiClient } from "./apiClient";
 import { 
   Alert, 
   CreateAlertPayload, 
@@ -19,73 +13,65 @@ export const alertService = {
     try {
       const queryParams = new URLSearchParams();
       
-      if (params?.page) queryParams.append('page', params.page.toString());
-      if (params?.limit) queryParams.append('limit', params.limit.toString());
-      if (params?.is_active !== undefined) queryParams.append('is_active', params.is_active.toString());
-      if (params?.symbol) queryParams.append('symbol', params.symbol);
-      if (params?.alert_type) queryParams.append('alert_type', params.alert_type);
-      if (params?.triggered !== undefined) queryParams.append('triggered', params.triggered.toString());
-
-      const response = await apiClient.get<AlertsResponse>(`api/alerts?${queryParams.toString()}`);
+      if (params?.page) queryParams.append("page", params.page.toString());
+      if (params?.limit) queryParams.append("limit", params.limit.toString());
+      if (params?.symbol) queryParams.append("symbol", params.symbol);
+      if (params?.alert_type) queryParams.append("alert_type", params.alert_type);
+      if (params?.is_active !== undefined) queryParams.append("is_active", params.is_active.toString());
+      if (params?.triggered !== undefined) queryParams.append("triggered", params.triggered.toString());
       
-      if (!response.success) {
+      const response = await apiClient.get<AlertsResponse>(`/api/alerts?${queryParams.toString()}`);
+      
+      if (!response.success || !response.data) {
         throw new Error(response.error || "Falha ao buscar alertas");
       }
       
-      return response;
+      return response.data as AlertsResponse;
     } catch (error) {
       console.error("Erro ao buscar alertas:", error);
       throw error;
     }
   },
 
-  createAlert: async (alert: CreateAlertPayload): Promise<Alert> => {
+  createAlert: async (alertData: CreateAlertPayload): Promise<Alert> => {
     try {
-      const response = await apiClient("api/alerts", {
-        method: "POST",
-        body: JSON.stringify(alert),
-      });
-
-      if (!response.success) {
+      const response = await apiClient.post<{ success: boolean; data: Alert; error?: string }>("/api/alerts", alertData);
+      
+      if (!response.success || !response.data) {
         throw new Error(response.error || "Falha ao criar alerta");
       }
-
-      return response.data;
+      
+      return response.data as unknown as Alert;
     } catch (error) {
       console.error("Erro ao criar alerta:", error);
       throw error;
     }
   },
 
-  updateAlert: async (id: string, alert: UpdateAlertPayload): Promise<Alert> => {
+  updateAlert: async (alertId: string, alertData: UpdateAlertPayload): Promise<Alert> => {
     try {
-      const response = await apiClient(`api/alerts/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(alert),
-      });
-
-      if (!response.success) {
+      const response = await apiClient.put<{ success: boolean; data: Alert; error?: string }>(`/api/alerts/${alertId}`, alertData);
+      
+      if (!response.success || !response.data) {
         throw new Error(response.error || "Falha ao atualizar alerta");
       }
-
-      return response.data;
+      
+      return response.data as unknown as Alert;
     } catch (error) {
       console.error("Erro ao atualizar alerta:", error);
       throw error;
     }
   },
 
-  deleteAlert: async (id: string): Promise<{ success: boolean }> => {
+  deleteAlert: async (alertId: string): Promise<{ success: boolean }> => {
     try {
-      const response = await apiClient(`api/alerts/${id}`, {
-        method: "DELETE",
-      });
-
+      const response = await apiClient.delete<{ success: boolean; error?: string }>(`/api/alerts/${alertId}`);
+      
       if (!response.success) {
         throw new Error(response.error || "Falha ao excluir alerta");
       }
-
-      return { success: true };
+      
+      return response.data as AlertStatistics;
     } catch (error) {
       console.error("Erro ao excluir alerta:", error);
       throw error;
@@ -94,68 +80,65 @@ export const alertService = {
 
   getAlertStats: async (): Promise<AlertStatistics> => {
     try {
-      const response = await apiClient("api/alerts/stats");
-
-      if (!response.success) {
-        throw new Error(response.error || "Falha ao buscar estatísticas de alertas");
+      const response = await apiClient.get<AlertStatistics>("/api/alerts/stats");
+      
+      if (!response.success || !response.data) {
+        throw new Error(response.error || "Falha ao buscar estatísticas");
       }
-
-      return response.data;
+      
+      return response.data as AlertStatistics;
     } catch (error) {
-      console.error("Erro ao buscar estatísticas de alertas:", error);
+      console.error("Erro ao buscar estatísticas:", error);
       throw error;
     }
   },
 
   // Bulk operations
-  enableAlerts: async (alertIds: string[]): Promise<{ success: boolean; updated_count: number }> => {
+  enableAlerts: async (alertIds: string[]): Promise<{ success: boolean }> => {
     try {
-      const response = await apiClient("api/alerts/bulk-enable", {
-        method: "POST",
-        body: JSON.stringify({ alert_ids: alertIds }),
+      const response = await apiClient.post<{ success: boolean; error?: string }>("/api/alerts/bulk/enable", {
+        alert_ids: alertIds
       });
-
+      
       if (!response.success) {
-        throw new Error(response.error || "Falha ao habilitar alertas");
+        throw new Error(response.error || "Falha ao ativar alertas");
       }
-
-      return response.data;
+      
+      return response;
     } catch (error) {
-      console.error("Erro ao habilitar alertas:", error);
+      console.error("Erro ao ativar alertas:", error);
       throw error;
     }
   },
 
-  disableAlerts: async (alertIds: string[]): Promise<{ success: boolean; updated_count: number }> => {
+  disableAlerts: async (alertIds: string[]): Promise<{ success: boolean }> => {
     try {
-      const response = await apiClient("api/alerts/bulk-disable", {
-        method: "POST",
-        body: JSON.stringify({ alert_ids: alertIds }),
+      const response = await apiClient.post<{ success: boolean; error?: string }>("/api/alerts/bulk/disable", {
+        alert_ids: alertIds
       });
-
+      
       if (!response.success) {
-        throw new Error(response.error || "Falha ao desabilitar alertas");
+        throw new Error(response.error || "Falha ao desativar alertas");
       }
-
-      return response.data;
+      
+      return response;
     } catch (error) {
-      console.error("Erro ao desabilitar alertas:", error);
+      console.error("Erro ao desativar alertas:", error);
       throw error;
     }
   },
 
-  deleteAlerts: async (alertIds: string[]): Promise<{ success: boolean; deleted_count: number }> => {
+  deleteAlerts: async (alertIds: string[]): Promise<{ success: boolean }> => {
     try {
-      const response = await apiClient("api/alerts/bulk-delete", {
-        method: "POST",
-        body: JSON.stringify({ alert_ids: alertIds }),
+      const response = await apiClient.post<{ success: boolean; error?: string }>("/api/alerts/bulk/delete", {
+        alert_ids: alertIds
       });
-
+      
       if (!response.success) {
         throw new Error(response.error || "Falha ao excluir alertas");
       }
-
-      return response.data;
+      
+      return response;
     } catch (error) {
       console.error("Erro ao excluir alertas:", error);
       throw error;
