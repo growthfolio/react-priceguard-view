@@ -19,6 +19,7 @@
 - [Pré-requisitos](#-pré-requisitos)
 - [Instalação](#-instalação)
 - [Configuração](#-configuração)
+- [Segurança](#-segurança)
 - [Como Usar](#-como-usar)
 - [Docker](#-docker)
 - [Estrutura do Projeto](#-estrutura-do-projeto)
@@ -148,6 +149,38 @@ REACT_APP_SKIP_AUTH=true
 ```
 
 Este modo utiliza dados mockados e um usuário de teste padrão.
+
+## 🔒 Segurança
+
+### ⚠️ Informações Importantes
+
+Este projeto utiliza informações sensíveis que devem ser protegidas:
+
+- **Google Client ID** para autenticação OAuth
+- **Chaves de API** para serviços externos
+- **Certificados SSL** para HTTPS
+
+### 🛡️ Configuração Segura
+
+1. **Nunca commite credenciais reais:**
+   ```bash
+   # ✅ Use arquivo local (ignorado pelo git)
+   cp .env.example .env.local
+   # Configure suas credenciais reais em .env.local
+   ```
+
+2. **Verificação de segurança:**
+   ```bash
+   ./security-check.sh
+   ```
+
+3. **Configuração Google OAuth:**
+   - Acesse [Google Cloud Console](https://console.cloud.google.com/)
+   - Crie credenciais OAuth 2.0
+   - Configure URLs autorizadas
+   - Use o Client ID em `.env.local`
+
+📚 **Consulte [SECURITY.md](SECURITY.md) para guia completo de segurança**
 
 ## 🎮 Como Usar
 
