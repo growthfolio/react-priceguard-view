@@ -9,9 +9,46 @@
 # environment variables
 .env
 .env.local
+.env.development
 .env.development.local
+.env.test
 .env.test.local
+.env.production
 .env.production.local
+.env.staging
+.env.staging.local
+
+# sensitive configuration files
+config/secrets.js
+config/secrets.json
+config/production.json
+config/staging.json
+secrets.json
+secrets.js
+
+# API keys and credentials
+api-keys.json
+credentials.json
+service-account-key.json
+google-credentials.json
+firebase-adminsdk-*.json
+
+# database
+*.db
+*.sqlite
+*.sqlite3
+database.json
+
+# authentication and tokens
+auth-config.json
+jwt-secret.txt
+refresh-tokens.json
+
+# backup files
+*.backup
+*.bak
+backup/
+backups/
 
 # documentation
 docs/
@@ -115,10 +152,38 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# SSL certificates
+# SSL certificates and security
 *.pem
 *.key
 *.crt
+*.p12
+*.pfx
+*.cer
+*.der
+ssl/
+certs/
+certificates/
+private-keys/
+
+# Docker secrets
+docker-compose.override.yml
+docker-compose.prod.yml
+.docker/
+docker-secrets/
+
+# Cloud provider secrets
+.aws/
+.gcloud/
+.azure/
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars
+
+# monitoring and analytics
+.sentry-dsn
+analytics-config.json
+monitoring-secrets.json
 
 # OS generated files
 .DS_Store
@@ -134,3 +199,47 @@ Thumbs.db
 
 # ESLint cache
 .eslintcache
+
+# Security and sensitive files
+*.private
+*.secret
+.secrets/
+sensitive-data/
+confidential/
+
+# User-specific files
+user-config.json
+personal-settings.json
+local-config.js
+
+# Third-party service configs
+webhook-urls.txt
+integration-keys.json
+external-api-config.json
+
+# Development debugging
+debug.log
+debug-*.log
+trace.log
+*.trace
+
+# IDE specific sensitive files
+.vscode/settings.json
+.idea/workspace.xml
+.idea/misc.xml
+
+# Temporary sensitive files
+temp-secrets/
+tmp-config/
+staging-data/
+
+# Performance and profiling data
+*.prof
+*.heapsnapshot
+profiling-data/
+
+# Local development overrides
+local.env
+dev.env
+test-data/
+mock-data/private/
