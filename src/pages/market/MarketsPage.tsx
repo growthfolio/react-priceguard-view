@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Card } from '../../components/ui';
 import { MagnifyingGlass, ChartLine, TrendUp, TrendDown, Star } from '@phosphor-icons/react';
 import AdvancedDataDashboard from '../../components/marketTable/advancedDashboard/AdvancedDataDashboard';
@@ -61,11 +61,13 @@ const MarketsPage: React.FC = () => {
     };
 
     loadCryptoData();
-  }, [page, limit, searchTerm, useMockData, webSocket]);
+  }, [page, limit, searchTerm, useMockData]); // Removed webSocket dependency
 
   // Update data when WebSocket price updates arrive
+  const priceUpdatesSize = useMemo(() => webSocket.priceUpdates.size, [webSocket.priceUpdates]);
+  
   useEffect(() => {
-    if (!webSocket.priceUpdates.size) return;
+    if (priceUpdatesSize === 0) return;
 
     setDataSource(prevData => 
       prevData.map(row => {
@@ -82,7 +84,7 @@ const MarketsPage: React.FC = () => {
         return row;
       })
     );
-  }, [webSocket.priceUpdates]);
+  }, [priceUpdatesSize]); // Use stable reference
 
   // Filtrar dados baseado no termo de busca
   const filteredData = dataSource.filter(item => 

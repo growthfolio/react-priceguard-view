@@ -3,9 +3,6 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 import { PageLoading } from "../components/ui";
 import { useAuth } from "../contexts/AuthContext";
-import { WebSocketProvider } from "../contexts/WebSocketContext";
-import { NotificationProvider } from "../contexts/NotificationContext";
-import { ThemeProvider } from "../contexts/ThemeContext";
 
 // Lazy loading das páginas
 const LoginPage = lazy(() => import("../pages/login/LoginPage"));
@@ -16,26 +13,27 @@ const MarketsPage = lazy(() => import("../pages/market/MarketsPage"));
 const AlertsPage = lazy(() => import("../pages/alerts/AlertsPage"));
 const NotificationsPage = lazy(() => import("../pages/notifications/NotificationsPage"));
 const TradingViewPage = lazy(() => import("../pages/trading/TradingViewPage"));
+const BackendTestPage = lazy(() => import("../pages/test/BackendTestPage"));
+const TestLoginPage = lazy(() => import("../pages/test/TestLoginPage"));
+const RealLoginDemo = lazy(() => import("../pages/login/RealLoginDemo"));
+const AuthDebugPage = lazy(() => import("../pages/debug/AuthDebugPage"));
 
 const AppRoutes: React.FC = () => {
-  const { loading } = useAuth();
-  
-  // Verifica se deve pular autenticação para ambiente de teste
-  const skipAuth = process.env.REACT_APP_SKIP_AUTH === 'true';
+  const { loading, isAuthenticated } = useAuth();
 
   if (loading) {
     return <PageLoading message="Carregando aplicação..." />; // Exibe o loader global
   }
 
   return (
-    <ThemeProvider>
-      <NotificationProvider>
-        <Suspense fallback={<PageLoading message="Carregando página..." />}>
-          <Routes>
-          <Route path="/" element={<Navigate to={skipAuth ? "/home" : "/login"} />} />
+    <Suspense fallback={<PageLoading message="Carregando página..." />}>
+      <Routes>
+          <Route path="/" element={<Navigate to={isAuthenticated ? "/home" : "/login"} />} />
 
           {/* Rotas públicas */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/test-login" element={<TestLoginPage />} />
+          <Route path="/real-login-demo" element={<RealLoginDemo />} />
 
           {/* Rotas protegidas */}
           <Route
@@ -57,21 +55,17 @@ const AppRoutes: React.FC = () => {
           <Route
             path="/market"
             element={
-              <WebSocketProvider>
-                <ProtectedRoute>
-                  <MarketsPage />
-                </ProtectedRoute>
-              </WebSocketProvider>
+              <ProtectedRoute>
+                <MarketsPage />
+              </ProtectedRoute>
             }
           />
           <Route
             path="/dashboard"
             element={
-              <WebSocketProvider>
-                <ProtectedRoute>
-                  <DashboardPage />
-                </ProtectedRoute>
-              </WebSocketProvider>
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
             }
           />
           <Route
@@ -93,17 +87,29 @@ const AppRoutes: React.FC = () => {
           <Route
             path="/trading/:symbol?"
             element={
-              <WebSocketProvider>
-                <ProtectedRoute>
-                  <TradingViewPage />
-                </ProtectedRoute>
-              </WebSocketProvider>
+              <ProtectedRoute>
+                <TradingViewPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/test"
+            element={
+              <ProtectedRoute>
+                <BackendTestPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/debug"
+            element={
+              <ProtectedRoute>
+                <AuthDebugPage />
+              </ProtectedRoute>
             }
           />
         </Routes>
       </Suspense>
-    </NotificationProvider>
-    </ThemeProvider>
   );
 };
 

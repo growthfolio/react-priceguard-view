@@ -7,6 +7,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import "./index.css";
 import { BrowserRouter as Router } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { NotificationProvider } from "./contexts/NotificationContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import { WebSocketProvider } from "./contexts/WebSocketContext";
 
 // Obtenha as variáveis de ambiente
 const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || '';
@@ -28,7 +31,13 @@ const AppWrapper = () => {
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ToastContainer />
         <AuthProvider>
-          <App />
+          <ThemeProvider>
+            <WebSocketProvider>
+              <NotificationProvider>
+                <App />
+              </NotificationProvider>
+            </WebSocketProvider>
+          </ThemeProvider>
         </AuthProvider>
       </Router>
     );
@@ -40,7 +49,13 @@ const AppWrapper = () => {
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ToastContainer />
         <AuthProvider>
-          <App />
+          <ThemeProvider>
+            <WebSocketProvider>
+              <NotificationProvider>
+                <App />
+              </NotificationProvider>
+            </WebSocketProvider>
+          </ThemeProvider>
         </AuthProvider>
       </Router>
     </GoogleOAuthProvider>
