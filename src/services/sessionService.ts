@@ -2,7 +2,7 @@ import { User, AuthTokens, UserSettings } from "../models/User";
 
 const sessionService = {
   getUser: (): User | null => {
-    const userString = localStorage.getItem("user");
+    const userString = localStorage.getItem("priceGuard_user_data");
     if (!userString) {
       console.warn("Nenhum dado de usuário encontrado no localStorage.");
       return null;
@@ -17,30 +17,30 @@ const sessionService = {
   },
 
   getToken: (): string | null => {
-    return localStorage.getItem("access_token") || null;
+    return localStorage.getItem("priceGuard_auth_token") || null;
   },
 
   getRefreshToken: (): string | null => {
-    return localStorage.getItem("refresh_token") || null;
+    return localStorage.getItem("priceGuard_refresh_token") || null;
   },
 
   saveSession: (user: User, tokens: AuthTokens): void => {
-    localStorage.setItem("user", JSON.stringify(user));
-    localStorage.setItem("access_token", tokens.access_token);
-    localStorage.setItem("refresh_token", tokens.refresh_token);
-    localStorage.setItem("token_expires_in", tokens.expires_in.toString());
-    localStorage.setItem("token_type", tokens.token_type);
+    localStorage.setItem("priceGuard_user_data", JSON.stringify(user));
+    localStorage.setItem("priceGuard_auth_token", tokens.access_token);
+    localStorage.setItem("priceGuard_refresh_token", tokens.refresh_token);
+    localStorage.setItem("priceGuard_token_expires_in", tokens.expires_in.toString());
+    localStorage.setItem("priceGuard_token_type", tokens.token_type);
   },
 
   updateTokens: (tokens: AuthTokens): void => {
-    localStorage.setItem("access_token", tokens.access_token);
-    localStorage.setItem("refresh_token", tokens.refresh_token);
-    localStorage.setItem("token_expires_in", tokens.expires_in.toString());
-    localStorage.setItem("token_type", tokens.token_type);
+    localStorage.setItem("priceGuard_auth_token", tokens.access_token);
+    localStorage.setItem("priceGuard_refresh_token", tokens.refresh_token);
+    localStorage.setItem("priceGuard_token_expires_in", tokens.expires_in.toString());
+    localStorage.setItem("priceGuard_token_type", tokens.token_type);
   },
 
   getUserSettings: (): UserSettings | null => {
-    const settingsString = localStorage.getItem("user_settings");
+    const settingsString = localStorage.getItem("priceGuard_user_preferences");
     if (!settingsString) {
       return null;
     }
@@ -54,11 +54,11 @@ const sessionService = {
   },
 
   saveUserSettings: (settings: UserSettings): void => {
-    localStorage.setItem("user_settings", JSON.stringify(settings));
+    localStorage.setItem("priceGuard_user_preferences", JSON.stringify(settings));
   },
 
   isTokenExpired: (): boolean => {
-    const expiresIn = localStorage.getItem("token_expires_in");
+    const expiresIn = localStorage.getItem("priceGuard_token_expires_in");
     if (!expiresIn) return true;
     
     const expirationTime = parseInt(expiresIn) * 1000; // Convert to milliseconds
@@ -66,12 +66,12 @@ const sessionService = {
   },
 
   clearSession: (): void => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    localStorage.removeItem("token_expires_in");
-    localStorage.removeItem("token_type");
-    localStorage.removeItem("user_settings");
+    localStorage.removeItem("priceGuard_user_data");
+    localStorage.removeItem("priceGuard_auth_token");
+    localStorage.removeItem("priceGuard_refresh_token");
+    localStorage.removeItem("priceGuard_token_expires_in");
+    localStorage.removeItem("priceGuard_token_type");
+    localStorage.removeItem("priceGuard_user_preferences");
   },
 };
 

@@ -4,6 +4,8 @@ import { authService } from "../services/authService";
 import { sessionService } from "../services/sessionService";
 import { User } from "../models/User";
 import { toastAlert, ToastType, MESSAGES } from "../utils/toastAlert";
+import { clearAllAppData } from "../utils/clearStorage";
+import { debugAuth } from "../utils/debugAuth";
 import { toast } from "react-toastify";
 
 interface AuthContextType {
@@ -24,6 +26,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Verifica se deve pular autenticação para ambiente de teste
   const skipAuth = process.env.REACT_APP_SKIP_AUTH === 'true';
+  
+  // Debug da configuração de autenticação
+  console.log('🔧 AuthContext Config:', {
+    REACT_APP_SKIP_AUTH: process.env.REACT_APP_SKIP_AUTH,
+    skipAuth: skipAuth,
+    NODE_ENV: process.env.NODE_ENV
+  });
 
   const decodeJWT = useCallback((token: string): Record<string, any> | null => {
     try {
@@ -51,45 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [decodeJWT]);
 
-  useEffect(() => {
-    const initializeAuth = () => {
-      // Se SKIP_AUTH está habilitado, simula usuário autenticado
-      if (skipAuth) {
-        const mockUser: User = {
-          id: "test-user",
-          google_id: "test-google-id",
-          name: "Felipe Macedo (Teste)",
-          email: "test@example.com",
-          picture: "/img/perfil-wpp.jpeg",
-          avatar: "/img/perfil-wpp.jpeg",
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-        setUser(mockUser);
-        setIsAuthenticated(true);
-        setLoading(false);
-        return;
-      }
 
-      const storedToken = sessionService.getToken();
-      const storedUser = sessionService.getUser();
-
-      if (storedToken && storedToken !== "null" && storedUser) {
-        if (isTokenValid(storedToken)) {
-          setUser(storedUser);
-          setIsAuthenticated(true);
-        } else {
-          if (!toast.isActive("session-expired")) {
-            toastAlert(MESSAGES.AUTH.SESSION_EXPIRED, ToastType.ERROR, "session-expired");
-          }
-          sessionService.clearSession();
-        }
-      }
-      setLoading(false);
-    };
-
-    initializeAuth();
-  }, [skipAuth, isTokenValid, decodeJWT]);
 
   const loginWithGoogle = async (credential: string) => {
     // Se está no modo de teste, simula login bem-sucedido
@@ -151,22 +122,91 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const logout = () => {
-    // Se está no modo de teste, apenas limpa o estado local
-    if (skipAuth) {
-      setUser(null);
-      setIsAuthenticated(false);
-      if (!toast.isActive("logout-success")) {
-        toastAlert(MESSAGES.AUTH.LOGOUT_SUCCESS, ToastType.INFO, "logout-success");
-      }
-      navigate("/login");
-      return;
-    }
+  // Initialize auth state on app startup
+  useEffect(() => {
+    const initializeAuth = async () => {
+      console.log('🔄 Inicializando autenticação...');
+      debugAuth(); // Debug completo da autenticação
+      
+      try {
+        // APENAS quando skipAuth for verdadeiro, usar usuário mock
+        if (skipAuth) {
+          console.log('⚠️ Modo de teste ativado - carregando usuário mock');
+          const mockUser: User = {
+            id: "test-user-1",
+            google_id: "mock-google-id-123",
+            name: "Felipe Macedo (Teste)",
+            email: "test@example.com",
+            picture: "/img/perfil-wpp.jpeg",
+            avatar: "/img/perfil-wpp.jpeg",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+          setUser(mockUser);
+          setIsAuthenticated(true);
+          setLoading(false);
+          return;
+        }
 
-    authService.logout();
+        console.log('🔐 Modo de autenticação real - verificando sessão existente...');
+        
+        // Check if user is already logged in
+        const token = sessionService.getToken();
+        const storedUser = sessionService.getUser();
+
+        console.log('📱 Dados da sessão:', {
+          hasToken: !!token,
+          hasUser: !!storedUser,
+          tokenValid: token ? isTokenValid(token) : false,
+          tokenValue: token?.substring(0, 10) + '...' || 'null',
+          userData: storedUser ? `${storedUser.name} (${storedUser.email})` : 'null'
+        });
+
+        if (token && isTokenValid(token) && storedUser) {
+          console.log('✅ Sessão válida encontrada - restaurando usuário');
+          setUser(storedUser);
+          setIsAuthenticated(true);
+        } else {
+          console.log('❌ Sessão inválida ou inexistente - limpando dados');
+          // Clear invalid session
+          sessionService.clearSession();
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error("❗ Erro ao inicializar autenticação:", error);
+        sessionService.clearSession();
+        setUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+        console.log('✅ Inicialização da autenticação concluída', {
+          authenticated: isAuthenticated,
+          hasUser: !!user
+        });
+      }
+    };
+
+    initializeAuth();
+  }, [skipAuth, isTokenValid]);
+
+  const logout = () => {
+    console.log('🚪 Iniciando logout...');
+    debugAuth(); // Debug antes do logout
+    
+    // Sempre limpa todos os dados da aplicação
+    clearAllAppData();
     sessionService.clearSession();
+    
     setUser(null);
     setIsAuthenticated(false);
+
+    if (!skipAuth) {
+      authService.logout();
+    }
+
+    console.log('✅ Logout concluído');
+    debugAuth(); // Debug após o logout
 
     if (!toast.isActive("logout-success")) {
       toastAlert(MESSAGES.AUTH.LOGOUT_SUCCESS, ToastType.INFO, "logout-success");
