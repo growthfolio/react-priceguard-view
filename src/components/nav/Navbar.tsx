@@ -207,7 +207,7 @@ function NavBar() {
                     className="w-8 h-8 rounded-full ring-2 ring-primary-200"
                   />
                   <span className="text-sm font-medium text-gray-700 hidden sm:block">
-                    {user?.name || "Usuário"}
+                    {user?.name || ""}
                   </span>
                 </button>
 
@@ -222,8 +222,8 @@ function NavBar() {
                           className="w-10 h-10 rounded-full"
                         />
                         <div>
-                          <p className="font-medium text-gray-900">{user?.name || "Usuário"}</p>
-                          <p className="text-sm text-gray-500">{user?.email || "email@exemplo.com"}</p>
+                          <p className="font-medium text-gray-900">{user?.name || ""}</p>
+                          <p className="text-sm text-gray-500">{user?.email || ""}</p>
                         </div>
                       </div>
                     </div>

@@ -126,14 +126,16 @@ const ProfilePage: React.FC = () => {
             
             <div className="text-center sm:text-left flex-1">
               <h1 className="text-3xl font-bold mb-2">
-                {user?.name || "Usuário Teste"}
+                {user?.name || ""}
               </h1>
               <p className="text-primary-100 text-lg mb-4">
-                {user?.email || "teste@exemplo.com"}
+                {user?.email || ""}
               </p>
               <div className="flex flex-wrap gap-3">
                 <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
-                  <span className="text-sm font-medium">Membro desde 2024</span>
+                  <span className="text-sm font-medium">
+                    Membro desde {user?.created_at ? new Date(user.created_at).getFullYear() : ""}
+                  </span>
                 </div>
                 <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
                   <span className="text-sm font-medium">Trader Ativo</span>
