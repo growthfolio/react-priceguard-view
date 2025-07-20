@@ -23,6 +23,8 @@ import {
   Calendar,
   Users
 } from "lucide-react";
+import { indicatorService } from '../../services/indicatorService';
+import { healthService } from '../../services/healthService';
 
 interface DashboardStats {
   totalAlerts: number;
@@ -151,6 +153,25 @@ const DashboardPage: React.FC = () => {
       }
     };
     loadData();
+  }, []);
+
+  // Fetch indicators and health status
+  useEffect(() => {
+    const fetchIndicatorsAndStatus = async () => {
+      try {
+        // Exemplo: Buscar RSI e EMA para BTCUSDT
+        const rsi = await indicatorService.calculateRSI('BTCUSDT', '1h', 14);
+        const ema = await indicatorService.calculateEMA('BTCUSDT', '1h', 21);
+        // Exemplo: Buscar status do backend
+        const health = await healthService.getHealth();
+        // Atualize o estado ou widgets do dashboard com esses dados
+        // setStats(prev => ({ ...prev, rsi: rsi.value, ema: ema.value, backendStatus: health.status }));
+      } catch (error) {
+        // Trate erros de integração
+        console.error('Erro ao buscar indicadores ou status:', error);
+      }
+    };
+    fetchIndicatorsAndStatus();
   }, []);
 
   if (loading) {
