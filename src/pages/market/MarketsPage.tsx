@@ -1,12 +1,30 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Card } from '../../components/ui';
-import { MagnifyingGlass, ChartLine, TrendUp, TrendDown, Star } from '@phosphor-icons/react';
+import { 
+  MagnifyingGlass, 
+  ChartLine, 
+  TrendUp, 
+  TrendDown, 
+  Star, 
+  Filter,
+  Eye,
+  BarChart3,
+  Activity,
+  DollarSign,
+  Zap,
+  Target,
+  ArrowUpRight,
+  Clock,
+  Sparkles,
+  Globe
+} from '@phosphor-icons/react';
 import AdvancedDataDashboard from '../../components/marketTable/advancedDashboard/AdvancedDataDashboard';
 import { generateColumns, mockMarketData, ResizableSortableTable } from '../../components/marketTable';
 import { useWebSocket } from '../../contexts/WebSocketContext';
 import { CryptoRow } from '../../models';
 import TradingViewModal from '../../modal/TradingViewModal';
 import { cryptoService } from '../../services/cryptoService';
+import { Link } from 'react-router-dom';
 
 const MarketsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'table' | 'advanced'>('overview');
@@ -16,6 +34,7 @@ const MarketsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [limit] = useState(50);
+  const [selectedFilter, setSelectedFilter] = useState<'all' | 'gainers' | 'losers' | 'favorites'>('all');
   const webSocket = useWebSocket();
 
   // Controle centralizado de dados mockados ou reais

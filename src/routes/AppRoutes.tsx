@@ -9,7 +9,7 @@ const LoginPage = lazy(() => import("../pages/login/LoginPage"));
 const HomePage = lazy(() => import("../pages/home/HomePage"));
 const DashboardPage = lazy(() => import("../pages/dashboard/DashboardPage"));
 const ProfilePage = lazy(() => import("../pages/profile/ProfilePage"));
-const MarketsPage = lazy(() => import("../pages/market/MarketsPage"));
+const MarketsPage = lazy(() => import("../pages/market/ModernMarketsPage"));
 const AlertsPage = lazy(() => import("../pages/alerts/AlertsPage"));
 const NotificationsPage = lazy(() => import("../pages/notifications/NotificationsPage"));
 const TradingViewPage = lazy(() => import("../pages/trading/TradingViewPage"));
