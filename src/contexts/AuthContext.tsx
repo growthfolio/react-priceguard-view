@@ -63,48 +63,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
   const loginWithGoogle = async (credential: string) => {
-    // Se está no modo de teste, simula login bem-sucedido
-    if (skipAuth) {
-      const mockUser: User = {
-        id: "test-user",
-        google_id: "test-google-id",
-        name: "Felipe Macedo (Teste)",
-        email: "test@example.com",
-        picture: "/img/perfil-wpp.jpeg",
-        avatar: "/img/perfil-wpp.jpeg",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      setUser(mockUser);
-      setIsAuthenticated(true);
-      
-      if (!toast.isActive("login-success")) {
-        toastAlert(MESSAGES.AUTH.LOGIN_SUCCESS, ToastType.SUCCESS, "login-success");
-      }
-
-      // Simula um delay para mostrar loading
-      setTimeout(() => {
-        navigate("/home");
-        setLoading(false);
-      }, 500);
-      return;
-    }
-
     setLoading(true);
     try {
       await authService.loginWithGoogle(credential);
-
       const storedUser = sessionService.getUser();
       const token = sessionService.getToken();
-      
       if (token && isTokenValid(token) && storedUser) {
         setUser(storedUser);
         setIsAuthenticated(true);
-
         if (!toast.isActive("login-success")) {
           toastAlert(MESSAGES.AUTH.LOGIN_SUCCESS, ToastType.SUCCESS, "login-success");
         }
-
         setTimeout(() => {
           navigate("/home");
           setLoading(false);
@@ -126,34 +95,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const initializeAuth = async () => {
       console.log('🔄 Inicializando autenticação...');
-      debugAuth(); // Debug completo da autenticação
-      
+      debugAuth();
       try {
-        // APENAS quando skipAuth for verdadeiro, usar usuário mock
-        if (skipAuth) {
-          console.log('⚠️ Modo de teste ativado - carregando usuário mock');
-          const mockUser: User = {
-            id: "test-user-1",
-            google_id: "mock-google-id-123",
-            name: "Felipe Macedo (Teste)",
-            email: "test@example.com",
-            picture: "/img/perfil-wpp.jpeg",
-            avatar: "/img/perfil-wpp.jpeg",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
-          setUser(mockUser);
-          setIsAuthenticated(true);
-          setLoading(false);
-          return;
-        }
-
         console.log('🔐 Modo de autenticação real - verificando sessão existente...');
-        
-        // Check if user is already logged in
         const token = sessionService.getToken();
         const storedUser = sessionService.getUser();
-
         console.log('📱 Dados da sessão:', {
           hasToken: !!token,
           hasUser: !!storedUser,
@@ -161,14 +107,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           tokenValue: token?.substring(0, 10) + '...' || 'null',
           userData: storedUser ? `${storedUser.name} (${storedUser.email})` : 'null'
         });
-
         if (token && isTokenValid(token) && storedUser) {
           console.log('✅ Sessão válida encontrada - restaurando usuário');
           setUser(storedUser);
           setIsAuthenticated(true);
         } else {
           console.log('❌ Sessão inválida ou inexistente - limpando dados');
-          // Clear invalid session
           sessionService.clearSession();
           setUser(null);
           setIsAuthenticated(false);
@@ -186,9 +130,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       }
     };
-
     initializeAuth();
-  }, [skipAuth, isTokenValid]);
+  }, [isTokenValid]);
 
   const logout = () => {
     console.log('🚪 Iniciando logout...');

@@ -1,41 +1,25 @@
 import { apiClient } from "./apiClient";
 import { sessionService } from "./sessionService";
 import { LoginResponse, RefreshResponse, AuthTokens, User } from "../models";
-import { mockGoogleLogin } from "../utils/mockAuth";
 
 export const authService = {
     loginWithGoogle: async (id_token: string): Promise<void> => {
         try {
             console.log('🔄 Tentando login com backend real...');
-            
-            // Primeira tentativa: backend real
-            const response = await apiClient.post<{ user: User; tokens: AuthTokens }>("/api/auth/google", { id_token });
-
-            if (!response.success) {
-                throw new Error("Login failed");
+            const response = await apiClient.post<LoginResponse>("/api/auth/login", { id_token });
+            console.log('[LOGIN] Resposta recebida:', response);
+            // Corrige acesso conforme tipagem LoginResponse
+            if (!response.success || !response.data?.user || !response.data?.tokens?.access_token) {
+                console.error("❌ Login falhou ou token inválido:", response);
+                throw new Error("Login failed ou token inválido");
             }
-
-            const { user, tokens } = response.data!;
-
-            if (!tokens.access_token) {
-                throw new Error("Token JWT não recebido na resposta do servidor.");
-            }
-
-            console.log('✅ Login bem-sucedido com backend real');
+            const { user, tokens } = response.data;
             sessionService.saveSession(user, tokens);
+            console.log('✅ Login bem-sucedido com backend real, token salvo:', tokens.access_token);
         } catch (error) {
             console.error("❌ Erro no backend real:", error);
-            
-            // Fallback: usar mock para desenvolvimento
-            console.log('🔄 Tentando fallback com mock...');
-            try {
-                const mockResponse = await mockGoogleLogin(id_token);
-                console.log('✅ Login bem-sucedido com mock');
-                sessionService.saveSession(mockResponse.user, mockResponse.tokens);
-            } catch (mockError) {
-                console.error("❌ Erro no mock também:", mockError);
-                throw new Error("Falha tanto no backend real quanto no mock");
-            }
+            // Não salva token do Google em nenhum caso
+            throw error;
         }
     },
 
