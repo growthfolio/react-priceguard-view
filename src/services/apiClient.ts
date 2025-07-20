@@ -38,14 +38,20 @@ const processQueue = (error: any, token: string | null = null) => {
 
 export const makeApiRequest = async (endpoint: string, options: RequestInit = {}): Promise<any> => {
   const token = sessionService.getToken();
+  const origin = window.location.origin;
   const headers = {
     ...options.headers,
     Authorization: token ? `Bearer ${token}` : "",
     "Content-Type": "application/json",
+    Origin: origin,
+    "X-CSRF-Token": "priceguard-csrf", // valor arbitrário
   };
 
   try {
-    const response = await fetch(`${BASE_URL}/${endpoint}`, { ...options, headers });
+    // Corrige endpoint para evitar barra dupla
+    const normalizedEndpoint = endpoint.startsWith("/") ? endpoint.slice(1) : endpoint;
+    const response = await fetch(`${BASE_URL}/${normalizedEndpoint}`, { ...options, headers });
+    console.log('[API] Resposta bruta do servidor:', response);
 
     // Handle 401 Unauthorized - Try to refresh token
     if (response.status === 401 && token) {
@@ -116,7 +122,8 @@ export const makeApiRequest = async (endpoint: string, options: RequestInit = {}
 
     // Parse response as structured format
     const data = await response.json();
-    
+    console.log('[API] Corpo da resposta JSON:', data);
+
     // Handle both structured and legacy formats
     if (typeof data === 'object' && 'success' in data) {
       if (!data.success && data.error) {
