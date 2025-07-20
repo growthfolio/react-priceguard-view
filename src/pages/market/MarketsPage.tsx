@@ -21,7 +21,7 @@ import {
 import AdvancedDataDashboard from '../../components/marketTable/advancedDashboard/AdvancedDataDashboard';
 import { generateColumns, mockMarketData, ResizableSortableTable } from '../../components/marketTable';
 import { useWebSocket } from '../../contexts/WebSocketContext';
-import { CryptoRow } from '../../models';
+import { CryptoRow, LatestPriceData } from '../../models';
 import TradingViewModal from '../../modal/TradingViewModal';
 import { cryptoService } from '../../services/cryptoService';
 import { Link } from 'react-router-dom';
@@ -59,26 +59,59 @@ const MarketsPage: React.FC = () => {
         setLoading(false);
         return;
       }
-
       try {
         setLoading(true);
-        // For now, use mock data as the CryptoRow interface expects many fields
-        // that aren't available in the current API response
-        // TODO: Update CryptoRow interface to match API or create adapter
-        setDataSource(mockMarketData);
-
+        // Busca dados reais da API
+        const response = await cryptoService.getMarketData({ page, limit, search: searchTerm });
+        // Adapta os dados recebidos para o formato CryptoRow
+        // Corrigido: acessar response.data.cryptos
+        const realData: CryptoRow[] = (response.data.cryptos ?? []).map((item: LatestPriceData, idx: number) => ({
+          id: idx,
+          symbol: item.symbol,
+          rawSymbol: item.symbol,
+          marketType: null,
+          imgurl: null,
+          active: true,
+          priceChange_1m: '',
+          priceChange_5m: '',
+          priceChange_15m: '',
+          priceChange_1h: '',
+          priceChange_1d: `${item.change_percent_24h?.toFixed(2) || 0}%`,
+          pullbackEntry_5m: null,
+          pullbackEntry_15m: null,
+          pullbackEntry_1h: null,
+          pullbackEntry_4h: null,
+          pullbackEntry_1d: null,
+          superTrend4h_5m: null,
+          superTrend4h_15m: null,
+          superTrend4h_1h: null,
+          trueRange_1m: '',
+          trueRange_5m: '',
+          trueRange_15m: '',
+          trueRange_1h: '',
+          rsi_5m: 0,
+          rsi_15m: 0,
+          rsi_1h: 0,
+          rsi_4h: 0,
+          rsi_1d: 0,
+          ematrend_15m: '',
+          ematrend_1h: '',
+          ematrend_4h: '',
+          ematrend_1d: '',
+          bot: null,
+          market: null,
+        }));
+        setDataSource(realData);
         // Subscribe to real-time price updates for visible symbols
-        const symbols = mockMarketData.slice(0, 20).map(row => row.rawSymbol).filter(Boolean) as string[];
+        const symbols = realData.slice(0, 20).map(row => row.rawSymbol).filter(Boolean) as string[];
         webSocket.subscribeToPriceUpdates(symbols);
-
       } catch (error) {
         console.error('Failed to load crypto data:', error);
-        setDataSource(mockMarketData);
+        setDataSource([]);
       } finally {
         setLoading(false);
       }
     };
-
     loadCryptoData();
   }, [page, limit, searchTerm, useMockData]); // Removed webSocket dependency
 
