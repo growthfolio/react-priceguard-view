@@ -313,7 +313,7 @@ const BackendTestPage: React.FC = () => {
         </div>
         <div className="space-y-2 text-sm">
           <p><strong>API URL:</strong> {process.env.REACT_APP_API_URL || 'http://localhost:8080'}</p>
-          <p><strong>WebSocket URL:</strong> {process.env.REACT_APP_WS_URL || 'ws://localhost:8080/ws'}</p>
+          <p><strong>WebSocket URL:</strong> {process.env.REACT_APP_WS_URL || 'ws://localhost:8080'}</p>
           <p><strong>Skip Auth:</strong> {process.env.REACT_APP_SKIP_AUTH === 'true' ? 'Sim' : 'Não'}</p>
           <p><strong>Environment:</strong> {process.env.NODE_ENV}</p>
           <p><strong>Autenticado:</strong> {isAuthenticated ? `Sim (${user?.name})` : 'Não'}</p>

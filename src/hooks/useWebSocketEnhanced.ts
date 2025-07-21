@@ -22,7 +22,7 @@ interface UseWebSocketReturn {
 
 export const useWebSocket = (options: UseWebSocketOptions = {}): UseWebSocketReturn => {
   const {
-    url = process.env.REACT_APP_WS_URL || 'ws://localhost:8080/ws/dashboard',
+    url = process.env.REACT_APP_WS_URL || 'ws://localhost:8080',
     onMessage,
     onError,
     onOpen,

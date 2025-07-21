@@ -4,7 +4,7 @@ export const APP_VERSION = process.env.REACT_APP_VERSION || '0.1.0';
 
 // API Configuration
 export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
-export const WS_BASE_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:8080/ws/dashboard';
+export const WS_BASE_URL = process.env.REACT_APP_WS_URL || 'ws://localhost:8080';
 
 // API Endpoints
 export const API_ENDPOINTS = {
