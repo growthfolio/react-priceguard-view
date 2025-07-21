@@ -1,186 +1,71 @@
 import { apiClient } from "./apiClient";
+import { sessionService } from "./sessionService";
 import { User, UserSettings } from "../models/User";
 
 export const userService = {
   /**
-   * Busca informações do usuário atual
+   * Busca dados do usuário logado
    */
-  getCurrentUser: async (): Promise<{ success: boolean; data: User }> => {
-    try {
-      const response = await apiClient.get("api/user/profile");
-      
-      if (!response.success) {
-        throw new Error(response.error || "Falha ao buscar perfil do usuário");
+  getProfile: async (): Promise<{ success: boolean; data: User }> => {
+    const token = sessionService.getToken();
+    if (!token) throw new Error("Token de autenticação não encontrado");
+    const response = await apiClient.get("/api/user/profile", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-CSRF-Token": "priceguard-csrf"
       }
-      
-      return response;
-    } catch (error) {
-      console.error("Erro ao buscar perfil do usuário:", error);
-      throw error;
-    }
-  },
-
-  /**
-   * Atualiza informações do usuário
-   */
-  updateUser: async (userData: Partial<User>): Promise<{ success: boolean; data: User }> => {
-    try {
-      const response = await apiClient.get("api/user/profile", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(userData),
-      });
-
-      if (!response.success) {
-        throw new Error(response.error || "Falha ao atualizar perfil do usuário");
-      }
-
-      return response;
-    } catch (error) {
-      console.error("Erro ao atualizar perfil do usuário:", error);
-      throw error;
-    }
-  },
-
-  /**
-   * Busca configurações do usuário
-   */
-  getUserSettings: async (): Promise<{ success: boolean; data: UserSettings }> => {
-    try {
-      const response = await apiClient.get("api/user/settings");
-      
-      if (!response.success) {
-        throw new Error(response.error || "Falha ao buscar configurações do usuário");
-      }
-      
-      return response;
-    } catch (error) {
-      console.error("Erro ao buscar configurações do usuário:", error);
-      throw error;
-    }
+    });
+    if (!response.success || !response.data) throw new Error(response.error || "Falha ao buscar perfil do usuário");
+    return { success: true, data: response.data };
   },
 
   /**
    * Atualiza configurações do usuário
    */
-  updateUserSettings: async (
-    settings: Partial<UserSettings>
-  ): Promise<{ success: boolean; data: UserSettings }> => {
-    try {
-      const response = await apiClient.get("api/user/settings", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
-      });
-
-      if (!response.success) {
-        throw new Error(response.error || "Falha ao atualizar configurações do usuário");
+  updateSettings: async (settings: Partial<UserSettings>): Promise<{ success: boolean; data: { settings: UserSettings } }> => {
+    const token = sessionService.getToken();
+    if (!token) throw new Error("Token de autenticação não encontrado");
+    const response = await apiClient.put("/api/user/settings", settings, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-CSRF-Token": "priceguard-csrf",
+        "Content-Type": "application/json"
       }
-
-      return response;
-    } catch (error) {
-      console.error("Erro ao atualizar configurações do usuário:", error);
-      throw error;
-    }
+    });
+    if (!response.success || !response.data) throw new Error(response.error || "Falha ao atualizar configurações do usuário");
+    return { success: true, data: response.data };
   },
 
   /**
-   * Atualiza apenas o tema do usuário
+   * Lista alertas do usuário
    */
-  updateTheme: async (theme: "dark" | "light"): Promise<{ success: boolean; data: UserSettings }> => {
-    return await userService.updateUserSettings({ theme });
-  },
-
-  /**
-   * Atualiza símbolos favoritos do usuário
-   */
-  updateFavoriteSymbols: async (
-    favorite_symbols: string[]
-  ): Promise<{ success: boolean; data: UserSettings }> => {
-    return await userService.updateUserSettings({ favorite_symbols });
-  },
-
-  /**
-   * Adiciona um símbolo aos favoritos
-   */
-  addFavoriteSymbol: async (symbol: string): Promise<{ success: boolean; data: UserSettings }> => {
-    try {
-      const currentSettings = await userService.getUserSettings();
-      const currentFavorites = currentSettings.data.favorite_symbols || [];
-      
-      if (!currentFavorites.includes(symbol)) {
-        const updatedFavorites = [...currentFavorites, symbol];
-        return await userService.updateFavoriteSymbols(updatedFavorites);
+  getAlerts: async (): Promise<{ success: boolean; data: any[] }> => {
+    const token = sessionService.getToken();
+    if (!token) throw new Error("Token de autenticação não encontrado");
+    const response = await apiClient.get("/api/user/alerts", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-CSRF-Token": "priceguard-csrf"
       }
-      
-      return currentSettings;
-    } catch (error) {
-      console.error("Erro ao adicionar símbolo aos favoritos:", error);
-      throw error;
-    }
+    });
+    if (!response.success || !response.data) throw new Error(response.error || "Falha ao buscar alertas do usuário");
+    return { success: true, data: response.data };
   },
 
   /**
-   * Remove um símbolo dos favoritos
+   * Atualiza avatar do usuário
    */
-  removeFavoriteSymbol: async (symbol: string): Promise<{ success: boolean; data: UserSettings }> => {
-    try {
-      const currentSettings = await userService.getUserSettings();
-      const currentFavorites = currentSettings.data.favorite_symbols || [];
-      
-      const updatedFavorites = currentFavorites.filter(fav => fav !== symbol);
-      return await userService.updateFavoriteSymbols(updatedFavorites);
-    } catch (error) {
-      console.error("Erro ao remover símbolo dos favoritos:", error);
-      throw error;
-    }
-  },
-
-  /**
-   * Exclui conta do usuário
-   */
-  deleteAccount: async (): Promise<{ success: boolean }> => {
-    try {
-      const response = await apiClient.get("api/user/account", {
-        method: "DELETE",
-      });
-
-      if (!response.success) {
-        throw new Error(response.error || "Falha ao excluir conta do usuário");
+  updateAvatar: async (avatarUrl: string): Promise<{ success: boolean; data: { avatar: string } }> => {
+    const token = sessionService.getToken();
+    if (!token) throw new Error("Token de autenticação não encontrado");
+    const response = await apiClient.post("/api/user/avatar", { avatar: avatarUrl }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "X-CSRF-Token": "priceguard-csrf",
+        "Content-Type": "application/json"
       }
-
-      return response;
-    } catch (error) {
-      console.error("Erro ao excluir conta do usuário:", error);
-      throw error;
-    }
-  },
-
-  /**
-   * Busca estatísticas de atividade do usuário
-   */
-  getUserStats: async (): Promise<{
-    success: boolean;
-    data: {
-      total_alerts: number;
-      active_alerts: number;
-      notifications_count: number;
-      favorite_symbols_count: number;
-      account_created: string;
-      last_login: string;
-    };
-  }> => {
-    try {
-      const response = await apiClient.get("api/user/stats");
-      
-      if (!response.success) {
-        throw new Error(response.error || "Falha ao buscar estatísticas do usuário");
-      }
-      
-      return response;
-    } catch (error) {
-      console.error("Erro ao buscar estatísticas do usuário:", error);
-      throw error;
-    }
-  },
+    });
+    if (!response.success || !response.data) throw new Error(response.error || "Falha ao atualizar avatar do usuário");
+    return { success: true, data: response.data };
+  }
 };
