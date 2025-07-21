@@ -72,9 +72,10 @@ export const userService = {
   /**
    * Busca apenas as configurações do usuário logado
    */
-  getUserSettings: async (): Promise<{ success: boolean; data: UserSettings }> => {
+  getUserSettings: async (): Promise<{ success: boolean; data: UserSettings | {} }> => {
     const profile = await userService.getProfile();
-    if (!profile.success || !profile.data.settings) throw new Error("Configurações do usuário não encontradas");
-    return { success: true, data: profile.data.settings };
+    if (!profile.success) throw new Error("Falha ao buscar perfil do usuário");
+    // Retorna objeto vazio se não houver settings
+    return { success: true, data: profile.data.settings || {} };
   }
 };
