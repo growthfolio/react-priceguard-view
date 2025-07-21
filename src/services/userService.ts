@@ -67,5 +67,14 @@ export const userService = {
     });
     if (!response.success || !response.data) throw new Error(response.error || "Falha ao atualizar avatar do usuário");
     return { success: true, data: response.data };
+  },
+
+  /**
+   * Busca apenas as configurações do usuário logado
+   */
+  getUserSettings: async (): Promise<{ success: boolean; data: UserSettings }> => {
+    const profile = await userService.getProfile();
+    if (!profile.success || !profile.data.settings) throw new Error("Configurações do usuário não encontradas");
+    return { success: true, data: profile.data.settings };
   }
 };
