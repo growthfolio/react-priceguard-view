@@ -1,37 +1,33 @@
 export interface Alert {
   id: string;
-  user_id: string;
+  user_id?: string;
   symbol: string;
-  alert_type: "price_above" | "price_below" | "volume_spike" | "price_change" | "technical_indicator";
-  condition_value: number;
-  condition_operator: ">" | "<" | ">=" | "<=" | "=";
-  message?: string;
-  is_active: boolean;
-  triggered_at?: string;
+  alert_type: "price";
+  condition_type: "above" | "below";
+  target_value: number;
+  timeframe: "1m" | "5m" | "15m" | "1h" | "4h" | "1d";
+  enabled: boolean;
+  notify_via: ("app" | "email" | "sms")[];
+  triggered_at?: string | null;
   created_at: string;
-  updated_at: string;
-  
-  // Campos opcionais para diferentes tipos de alerta
-  timeframe?: "1m" | "5m" | "15m" | "1h" | "4h" | "1d";
-  indicator_type?: "RSI" | "MACD" | "SMA" | "EMA" | "BB" | "STOCH";
-  indicator_period?: number;
-  percentage_change?: number;
+  updated_at?: string;
 }
 
 export interface CreateAlertPayload {
   symbol: string;
-  alert_type: Alert["alert_type"];
-  condition_value: number;
-  condition_operator: Alert["condition_operator"];
-  message?: string;
-  timeframe?: Alert["timeframe"];
-  indicator_type?: Alert["indicator_type"];
-  indicator_period?: number;
-  percentage_change?: number;
+  alert_type: "price";
+  condition_type: "above" | "below";
+  target_value: number;
+  timeframe: "1m" | "5m" | "15m" | "1h" | "4h" | "1d";
+  notify_via: ("app" | "email" | "sms")[];
 }
 
-export interface UpdateAlertPayload extends Partial<CreateAlertPayload> {
-  is_active?: boolean;
+export interface UpdateAlertPayload {
+  enabled?: boolean;
+  target_value?: number;
+  condition_type?: "above" | "below";
+  timeframe?: "1m" | "5m" | "15m" | "1h" | "4h" | "1d";
+  notify_via?: ("app" | "email" | "sms")[];
 }
 
 export interface AlertsParams {

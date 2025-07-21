@@ -1,28 +1,19 @@
 export interface Notification {
   id: string;
   user_id: string;
-  type: "alert_triggered" | "system" | "security" | "price_update" | "info";
+  alert_id?: string;
   title: string;
   message: string;
-  data?: Record<string, any>;
-  is_read: boolean;
-  priority: "low" | "medium" | "high" | "urgent";
+  notification_type: "alert_triggered" | "system" | "security" | "price_update" | "info";
+  read_at?: string | null;
   created_at: string;
-  updated_at: string;
-  read_at?: string;
-  
-  // Campos específicos para notificações de alerta
-  alert_id?: string;
-  symbol?: string;
-  price?: number;
 }
 
 export interface CreateNotificationPayload {
-  type: Notification["type"];
+  type: Notification["notification_type"];
   title: string;
   message: string;
   data?: Record<string, any>;
-  priority?: Notification["priority"];
   alert_id?: string;
   symbol?: string;
   price?: number;
@@ -31,9 +22,8 @@ export interface CreateNotificationPayload {
 export interface NotificationsParams {
   page?: number;
   limit?: number;
-  type?: Notification["type"];
+  type?: Notification["notification_type"];
   is_read?: boolean;
-  priority?: Notification["priority"];
   symbol?: string;
 }
 
