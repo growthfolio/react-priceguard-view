@@ -12,73 +12,43 @@ export const notificationService = {
   getNotifications: async (params?: NotificationsParams): Promise<NotificationsResponse> => {
     try {
       const queryParams = new URLSearchParams();
-      
       if (params?.page) queryParams.append('page', params.page.toString());
       if (params?.limit) queryParams.append('limit', params.limit.toString());
       if (params?.is_read !== undefined) queryParams.append('is_read', params.is_read.toString());
       if (params?.type) queryParams.append('type', params.type);
       if (params?.priority) queryParams.append('priority', params.priority);
       if (params?.symbol) queryParams.append('symbol', params.symbol);
-
-      const response = await apiClient(`api/notifications?${queryParams.toString()}`);
-      
+      const response = await apiClient.get(`/api/notifications?${queryParams.toString()}`);
       if (!response.success) {
         throw new Error(response.error || "Falha ao buscar notificações");
       }
-      
-      return response;
+      return response.data;
     } catch (error) {
       console.error("Erro ao buscar notificações:", error);
       throw error;
     }
   },
 
-  markAsRead: async (notificationIds: string[]): Promise<{ success: boolean; updated_count: number }> => {
+  markAsRead: async (notificationIds: string[]): Promise<{ success: boolean; message: string }> => {
     try {
-      const response = await apiClient.get("api/notifications/mark-read", {
-        method: "POST",
-        body: JSON.stringify({ notification_ids: notificationIds }),
-      });
-
+      const response = await apiClient.post(`/api/notifications/mark-read`, { ids: notificationIds });
       if (!response.success) {
         throw new Error(response.error || "Falha ao marcar notificações como lidas");
       }
-
-      return response.data;
+      return { success: response.success, message: response.data?.message || '' };
     } catch (error) {
       console.error("Erro ao marcar notificações como lidas:", error);
       throw error;
     }
   },
 
-  markAllAsRead: async (): Promise<{ success: boolean; updated_count: number }> => {
+  deleteNotification: async (id: string): Promise<{ success: boolean; message: string }> => {
     try {
-      const response = await apiClient.get("api/notifications/mark-all-read", {
-        method: "POST",
-      });
-
-      if (!response.success) {
-        throw new Error(response.error || "Falha ao marcar todas as notificações como lidas");
-      }
-
-      return response.data;
-    } catch (error) {
-      console.error("Erro ao marcar todas as notificações como lidas:", error);
-      throw error;
-    }
-  },
-
-  deleteNotification: async (id: string): Promise<{ success: boolean }> => {
-    try {
-      const response = await apiClient(`api/notifications/${id}`, {
-        method: "DELETE",
-      });
-
+      const response = await apiClient.delete(`/api/notifications/${id}`);
       if (!response.success) {
         throw new Error(response.error || "Falha ao excluir notificação");
       }
-
-      return { success: true };
+      return { success: response.success, message: response.data?.message || '' };
     } catch (error) {
       console.error("Erro ao excluir notificação:", error);
       throw error;
