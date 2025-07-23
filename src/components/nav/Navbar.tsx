@@ -11,7 +11,8 @@ import {
   X,
   TrendUp,
   Warning,
-  CheckCircle
+  CheckCircle,
+  ArrowDown
 } from "@phosphor-icons/react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNotifications } from "../../contexts/NotificationContext";
@@ -19,6 +20,7 @@ import { useWebSocket } from "../../contexts/WebSocketContext";
 import { NotificationBadge } from "../notifications";
 import { ThemeToggle } from "../ui";
 import LogoPriceGuard from "../../utils/LogoPriceGuard";
+import { CaretDown } from "@phosphor-icons/react";
 
 function NavBar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -204,11 +206,12 @@ function NavBar() {
                   <img
                     src={user?.picture || "https://via.placeholder.com/32"}
                     alt="Profile"
-                    className="w-8 h-8 rounded-full ring-2 ring-primary-200"
+                    className="w-10 h-10 mr-2 rounded-full ring-2 ring-primary-200"
                   />
                   <span className="text-sm font-medium text-gray-700 hidden sm:block">
                     {user?.name || ""}
                   </span>
+                  <span className="mt-3 rounded-full border- border-gray-100"> <CaretDown size={14} /> </span>
                 </button>
 
                 {/* Profile Dropdown */}
