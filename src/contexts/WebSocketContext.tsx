@@ -20,6 +20,9 @@ interface WebSocketContextProps {
   priceUpdates: Map<string, LatestPriceData>;
   notifications: Notification[];
   triggeredAlerts: Alert[];
+  cryptoData?: LatestPriceData[];
+  sendMessage?: (message: WebSocketMessageType) => void;
+
   
   // Métodos de subscrição
   subscribeToPriceUpdates: (symbols: string[]) => void;
@@ -45,7 +48,7 @@ interface WebSocketProviderProps {
   children: ReactNode;
 }
 
-const WebSocketContext = createContext<WebSocketContextProps | null>(null);
+export const WebSocketContext = createContext<WebSocketContextProps | null>(null);
 
 export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -101,11 +104,15 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({ children }
       alert_type: data.alert_type,
       condition_value: data.condition_value,
       condition_operator: ">", // Valor padrão
-      is_active: false, // Alert foi acionado
+      enabled: false, // Alert foi acionado
       triggered_at: data.triggered_at,
       created_at: "",
       updated_at: "",
       message: data.message,
+      condition_type: "above",
+      target_value: 0,
+      timeframe: "1m",
+      notify_via: []
     };
     
     setTriggeredAlerts(prev => [alertData, ...prev].slice(0, 20)); // Manter apenas os 20 mais recentes

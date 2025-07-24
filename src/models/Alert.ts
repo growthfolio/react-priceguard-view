@@ -6,6 +6,9 @@ export interface Alert {
   condition_type: "above" | "below";
   target_value: number;
   timeframe: "1m" | "5m" | "15m" | "1h" | "4h" | "1d";
+  condition_value?: number;
+  condition_operator?: ">" | "<" | "=" | null | ">=" | "<=";
+  message?: string;
   enabled: boolean;
   notify_via: ("app" | "email" | "sms")[];
   triggered_at?: string | null;

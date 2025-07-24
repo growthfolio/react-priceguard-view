@@ -8,18 +8,20 @@ const WebSocketConsumer: React.FC = () => {
     return <div>Loading WebSocket...</div>;
   }
 
-  const { cryptoData, sendMessage } = webSocketContext;
+  // Usar priceUpdates como array para exibir os dados
+  const { priceUpdates, sendMessage } = webSocketContext;
+  const cryptoData = Array.from(priceUpdates.values());
 
   return (
     <div>
       <button
-        onClick={() => sendMessage('Hello WebSocket!')}
+        onClick={() => sendMessage?.('system_message')}
         className="mb-4 bg-blue-500 text-white py-2 px-4 rounded"
       >
         Send Message
       </button>
       <div>
-        {cryptoData.length > 0 ? (
+        {cryptoData && cryptoData.length > 0 ? (
           cryptoData.map((crypto, index) => (
             <CryptoRow key={index} crypto={crypto} />
           ))
