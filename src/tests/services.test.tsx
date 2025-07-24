@@ -202,19 +202,20 @@ describe('AlertService', () => {
   });
 
   it('should create new alert', async () => {
-    const newAlert = {
+    const newAlert: import("../models/Alert").CreateAlertPayload = {
       symbol: 'ETH',
-      alert_type: 'price_below' as const,
-      condition_value: 3000,
-      condition_operator: '<' as const,
-      message: 'ETH below $3000',
+      alert_type: 'price',
+      condition_type: 'below',
+      target_value: 3000,
+      timeframe: '1h',
+      notify_via: ['app'],
     };
 
     const mockResponse = {
       id: '2',
       user_id: '1',
       ...newAlert,
-      is_active: true,
+      enabled: true,
       created_at: '2023-01-01T00:00:00Z',
       updated_at: '2023-01-01T00:00:00Z',
     };
@@ -236,7 +237,7 @@ describe('AlertService', () => {
     );
 
     expect(result.symbol).toBe('ETH');
-    expect(result.alert_type).toBe('price_below');
+    expect(result.alert_type).toBe('price');
   });
 
   it('should handle API errors gracefully', async () => {
