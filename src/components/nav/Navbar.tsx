@@ -20,7 +20,6 @@ import { useWebSocket } from "../../contexts/WebSocketContext";
 import { NotificationBadge } from "../notifications";
 import { ThemeToggle } from "../ui";
 import LogoPriceGuard from "../../utils/LogoPriceGuard";
-import { CaretDown } from "@phosphor-icons/react";
 
 function NavBar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -46,8 +45,8 @@ function NavBar() {
   // Get recent notifications from WebSocket
   const recentNotifications = webSocket.notifications.slice(-5).reverse();
 
-  const getNotificationIcon = (priority: string) => {
-    switch (priority) {
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
       case 'high': return <Warning size={16} className="text-red-500" />;
       case 'medium': return <Bell size={16} className="text-yellow-500" />;
       case 'low': return <CheckCircle size={16} className="text-green-500" />;
@@ -153,21 +152,21 @@ function NavBar() {
                           <div 
                             key={notification.id} 
                             className={`p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer ${
-                              !notification.is_read ? 'bg-blue-50' : ''
+                              !!notification.read_at === false ? 'bg-blue-50' : ''
                             }`}
                             onClick={() => navigate('/notifications')}
                           >
                             <div className="flex items-start space-x-3">
-                              {getNotificationIcon(notification.priority)}
+                              {getNotificationIcon(notification.notification_type)}
                               <div className="flex-1 min-w-0">
-                                <p className={`text-sm ${!notification.is_read ? 'font-semibold' : 'font-medium'} text-gray-900 truncate`}>
+                                <p className={`text-sm ${!!notification.read_at === false ? 'font-semibold' : 'font-medium'} text-gray-900 truncate`}>
                                   {notification.message}
                                 </p>
                                 <p className="text-xs text-gray-500 mt-1">
                                   {formatTime(notification.created_at)}
                                 </p>
                               </div>
-                              {!notification.is_read && (
+                              {!!notification.read_at === false && (
                                 <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1"></div>
                               )}
                             </div>
@@ -211,7 +210,6 @@ function NavBar() {
                   <span className="text-sm font-medium text-gray-700 hidden sm:block">
                     {user?.name || ""}
                   </span>
-                  <span className="mt-3 rounded-full border- border-gray-100"> <CaretDown size={14} /> </span>
                 </button>
 
                 {/* Profile Dropdown */}

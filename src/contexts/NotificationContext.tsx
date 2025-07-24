@@ -188,10 +188,11 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
     
     // Convert WebSocket notification to toast
     const toastType = (() => {
-      switch (latestNotification.priority) {
-        case 'high': return 'error';
-        case 'medium': return 'warning';
-        case 'low': return 'info';
+      switch (latestNotification.notification_type) {
+        case 'alert_triggered': return 'warning';
+        case 'system': return 'info';
+        case 'security': return 'error';
+        case 'price_update': return 'info';
         default: return 'info';
       }
     })();
@@ -203,14 +204,13 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
       action: {
         label: 'Ver',
         onClick: () => {
-          // Navigate to notifications page
           window.location.href = '/notifications';
         }
       }
     });
 
     // Update unread count
-    setUnreadCount(webSocket.notifications.filter(n => !n.is_read).length);
+    setUnreadCount(webSocket.notifications.filter(n => !n.read_at).length);
   }, [webSocket.notifications, addToast]);
 
   const contextValue: NotificationContextType = {
