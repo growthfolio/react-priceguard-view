@@ -315,4 +315,4 @@ function areEqual(a: React.DependencyList, b: React.DependencyList): boolean {
 }
 
 // Performance monitoring exports
-export { usePerformanceMonitor, useOperationTimer } from './usePerformanceMonitor';
+export { usePerformanceMonitor, useOperationTimer } from './usePerformanceMonitor.tsx';

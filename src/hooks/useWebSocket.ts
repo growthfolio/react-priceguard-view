@@ -6,18 +6,15 @@ const useWebSocket = () => {
   const [socket, setSocket] = useState<WebSocket | null>(null);
 
   useEffect(() => {
-    webSocketService.connect((message) => {
-      console.log("Message received:", message.data);
-    });
-    setSocket(webSocketService.getSocket());
+    webSocketService.connect();
 
     return () => {
-      webSocketService.close();
+      webSocketService.disconnect();
     };
   }, []);
 
   const sendMessage = (message: string) => {
-    webSocketService.sendMessage(message);
+    webSocketService.sendRaw(message);
   };
 
   return { socket, sendMessage };
