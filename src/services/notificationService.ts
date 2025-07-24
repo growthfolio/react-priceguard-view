@@ -16,7 +16,6 @@ export const notificationService = {
       if (params?.limit) queryParams.append('limit', params.limit.toString());
       if (params?.is_read !== undefined) queryParams.append('is_read', params.is_read.toString());
       if (params?.type) queryParams.append('type', params.type);
-      if (params?.priority) queryParams.append('priority', params.priority);
       if (params?.symbol) queryParams.append('symbol', params.symbol);
       const response = await apiClient.get(`/api/notifications?${queryParams.toString()}`);
       if (!response.success) {

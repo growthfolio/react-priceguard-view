@@ -193,6 +193,17 @@ export class WebSocketService {
   }
 
   /**
+   * Envia mensagem bruta pelo WebSocket
+   */
+  public sendRaw(message: string): void {
+    if (this.socket?.readyState === WebSocket.OPEN) {
+      this.socket.send(message);
+    } else {
+      console.error("WebSocket não está conectado");
+    }
+  }
+
+  /**
    * Processa mensagens recebidas
    */
   private handleMessage(event: MessageEvent): void {

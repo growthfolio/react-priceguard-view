@@ -152,10 +152,10 @@ export const useSidebarOpen = () => useAppStore((state) => state.sidebarOpen);
 
 // Computed selectors
 export const useUnreadNotifications = () => 
-  useAppStore((state) => state.notifications.filter(n => !n.is_read));
+  useAppStore((state) => state.notifications.filter(n => !n.read_at));
 
 export const useActiveAlerts = () => 
-  useAppStore((state) => state.alerts.filter(a => a.is_active));
+  useAppStore((state) => state.alerts.filter(a => a.enabled));
 
 export const useCryptoBySymbol = (symbol: string) =>
   useAppStore((state) => state.cryptoData.find(c => c.dashboardData.symbol === symbol));

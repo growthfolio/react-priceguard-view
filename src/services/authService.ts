@@ -9,11 +9,14 @@ export const authService = {
             const response = await apiClient.post<LoginResponse>("/api/auth/login", { id_token });
             console.log('[LOGIN] Resposta recebida:', response);
             // Corrige acesso conforme tipagem LoginResponse
-            if (!response.success || !response.data?.user || !response.data?.tokens?.access_token) {
+            if (!response.success || !response.data) {
                 console.error("❌ Login falhou ou token inválido:", response);
                 throw new Error("Login failed ou token inválido");
             }
-            const { user, tokens } = response.data;
+            const { user, tokens } = response.data as unknown as { user: User; tokens: AuthTokens };
+            if (!user || !tokens || !tokens.access_token) {
+                throw new Error("Login failed ou token inválido");
+            }
             sessionService.saveSession(user, tokens);
             console.log('✅ Login bem-sucedido com backend real, token salvo:', tokens.access_token);
         } catch (error) {
