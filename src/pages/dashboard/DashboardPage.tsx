@@ -115,17 +115,15 @@ const DashboardPage: React.FC = () => {
       try {
         // Busca estatísticas de alertas
         const alertStats = await import('../../services/alertService').then(m => m.alertService.getAlertStats());
-        // Busca estatísticas do usuário
-        const userStatsResp = await import('../../services/userService').then(m => m.userService.getUserStats());
         // Busca notificações
         const notificationsResp = await import('../../services/notificationService').then(m => m.notificationService.getNotifications({ is_read: false }));
 
         setStats({
-          totalAlerts: alertStats?.data?.total_alerts ?? userStatsResp.data.total_alerts ?? 0,
-          activeAlerts: alertStats?.data?.active_alerts ?? userStatsResp.data.active_alerts ?? 0,
+          totalAlerts: alertStats?.data?.total_alerts ?? 0,
+          activeAlerts: alertStats?.data?.active_alerts ?? 0,
           triggeredToday: alertStats?.data?.triggered_today ?? 0,
-          unreadNotifications: notificationsResp?.data?.unread_count ?? userStatsResp.data.notifications_count ?? 0,
-          favoriteSymbolsCount: userStatsResp.data.favorite_symbols_count ?? 0,
+          unreadNotifications: notificationsResp?.data?.unread_count ?? 0,
+          favoriteSymbolsCount: user?.settings?.favorite_symbols?.length ?? 0,
           portfolioValue: 0, // Não disponível
           dailyPnL: 0, // Não disponível
           weeklyPnL: 0, // Não disponível

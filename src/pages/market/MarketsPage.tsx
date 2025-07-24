@@ -6,16 +6,6 @@ import {
   TrendUp, 
   TrendDown, 
   Star, 
-  Filter,
-  Eye,
-  BarChart3,
-  Activity,
-  DollarSign,
-  Zap,
-  Target,
-  ArrowUpRight,
-  Clock,
-  Sparkles,
   Globe
 } from '@phosphor-icons/react';
 import AdvancedDataDashboard from '../../components/marketTable/advancedDashboard/AdvancedDataDashboard';

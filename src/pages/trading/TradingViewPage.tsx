@@ -88,10 +88,11 @@ const TradingViewPage: React.FC = () => {
     try {
       await alertService.createAlert({
         symbol: cryptoSymbol,
-        alert_type: type === 'above' ? 'price_above' : 'price_below',
-        condition_value: alertPrice,
-        condition_operator: type === 'above' ? '>' : '<',
-        message: `Preço do ${cryptoSymbol} ${type === 'above' ? 'subiu acima' : 'caiu abaixo'} de $${alertPrice.toFixed(2)}`
+        alert_type: 'price',
+        condition_type: type,
+        target_value: alertPrice,
+        timeframe,
+        notify_via: ['app'],
       });
 
       // Reload alerts
@@ -346,26 +347,26 @@ const TradingViewPage: React.FC = () => {
                   <div
                     key={alert.id}
                     className={`p-3 rounded-lg border ${
-                      alert.is_active ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'
+                      alert.enabled ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">
-                          {alert.alert_type === 'price_above' ? 'Preço Acima' : 'Preço Abaixo'} de{' '}
-                          {formatPrice(alert.condition_value)}
+                          {alert.condition_type === 'above' ? 'Preço Acima' : 'Preço Abaixo'} de{' '}
+                          {formatPrice(alert.target_value ?? 0)}
                         </p>
                         <p className="text-sm text-gray-600">{alert.message}</p>
                       </div>
                       <div className="flex items-center space-x-2">
                         <span
                           className={`px-2 py-1 rounded-full text-xs ${
-                            alert.is_active
+                            alert.enabled
                               ? 'bg-green-100 text-green-800'
                               : 'bg-gray-100 text-gray-800'
                           }`}
                         >
-                          {alert.is_active ? 'Ativo' : 'Inativo'}
+                          {alert.enabled ? 'Ativo' : 'Inativo'}
                         </span>
                         <Bell size={14} className="text-gray-400" />
                       </div>

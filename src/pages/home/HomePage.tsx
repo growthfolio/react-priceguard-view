@@ -42,7 +42,7 @@ const HomePage: React.FC = () => {
 
         setUserStats({
           totalAlerts: alertsResponse.data.total || 0,
-          activeAlerts: alertsResponse.data.alerts?.filter(alert => alert.is_active).length || 0,
+          activeAlerts: alertsResponse.data.alerts?.filter(alert => alert.enabled).length || 0,
           unreadNotifications: notificationsResponse.data.total || 0,
           favoriteCryptos: user.settings?.favorite_symbols?.length || 0
         });

@@ -45,7 +45,7 @@ const ProfilePage: React.FC = () => {
           notificationService.getNotifications({ limit: 5 })
         ]);
 
-        setUserSettings(settingsResponse.data);
+        setUserSettings(settingsResponse.data as UserSettings);
         setRecentAlerts(alertsResponse.data.alerts || []);
         setRecentNotifications(notificationsResponse.data.notifications || []);
       } catch (error) {
@@ -65,8 +65,8 @@ const ProfilePage: React.FC = () => {
     try {
       setSaving(true);
       const updatedSettings = { ...userSettings, ...newSettings };
-      const response = await userService.updateUserSettings(updatedSettings);
-      setUserSettings(response.data);
+      const response = await userService.updateSettings(updatedSettings);
+      setUserSettings(response.data.settings);
     } catch (error) {
       console.error('Failed to save settings:', error);
     } finally {
@@ -83,7 +83,7 @@ const ProfilePage: React.FC = () => {
   const stats = [
     { 
       label: "Alertas Ativos", 
-      value: loading ? "..." : recentAlerts.filter(alert => alert.is_active).length.toString(), 
+      value: loading ? "..." : recentAlerts.filter(alert => alert.enabled).length.toString(), 
       icon: Bell, 
       color: "text-primary-600" 
     },
@@ -95,7 +95,7 @@ const ProfilePage: React.FC = () => {
     },
     { 
       label: "Notificações", 
-      value: loading ? "..." : recentNotifications.filter(notif => !notif.is_read).length.toString(), 
+      value: loading ? "..." : recentNotifications.filter(notif => !notif.read_at).length.toString(), 
       icon: CheckCircle, 
       color: "text-success" 
     },
