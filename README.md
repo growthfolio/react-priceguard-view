@@ -1,411 +1,244 @@
-# 🔥 PriceGuard - Monitor de Preços de Criptomoedas
+# 🛡️ React PriceGuard View - Frontend de Monitoramento Crypto
 
-<div align="center">
-  <img src="public/logo512.png" alt="PriceGuard Logo" width="120" height="120">
+## 🎯 Objetivo de Aprendizado
+Projeto frontend desenvolvido para estudar **React + TypeScript avançado**, **WebSockets**, **autenticação OAuth**, e **integração com APIs**, criando uma plataforma completa de monitoramento de criptomoedas em tempo real.
+
+## 🛠️ Tecnologias Utilizadas
+- **Frontend:** React 18, TypeScript 5.7
+- **Styling:** TailwindCSS, Material-UI
+- **Estado:** Context API, Custom Hooks
+- **Autenticação:** Google OAuth 2.0, JWT
+- **Comunicação:** Axios, WebSocket
+- **Gráficos:** Recharts, TradingView Widgets
+- **Build:** Vite, Docker
+- **Conceitos estudados:**
+  - React avançado (Hooks, Context, Performance)
+  - TypeScript interfaces e tipos
+  - WebSocket real-time
+  - OAuth 2.0 e JWT
+  - Responsive design
+  - Docker containerization
+
+## 🚀 Demonstração
+```tsx
+// WebSocket Context para dados real-time
+const WebSocketContext = createContext<WebSocketContextType>({} as WebSocketContextType);
+
+export const useWebSocket = () => {
+  const context = useContext(WebSocketContext);
+  if (!context) {
+    throw new Error('useWebSocket must be used within WebSocketProvider');
+  }
+  return context;
+};
+
+// Hook customizado para crypto data
+const useCryptoData = () => {
+  const [prices, setPrices] = useState<Map<string, PriceData>>(new Map());
+  const { subscribe, unsubscribe } = useWebSocket();
   
-  **Plataforma inteligente para monitoramento de criptomoedas em tempo real**
+  useEffect(() => {
+    subscribe('price_updates', (data: PriceUpdate) => {
+      setPrices(prev => new Map(prev.set(data.symbol, data)));
+    });
+    
+    return () => unsubscribe('price_updates');
+  }, []);
   
-  [![React](https://img.shields.io/badge/React-18.3.1-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-5.7.2-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
-  [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker)](https://www.docker.com/)
-  [![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4.1-06B6D4?style=for-the-badge&logo=tailwindcss)](https://tailwindcss.com/)
-</div>
-
-## 📋 Índice
-
-- [Sobre o Projeto](#-sobre-o-projeto)
-- [Funcionalidades](#-funcionalidades)
-- [Tecnologias](#-tecnologias)
-- [Pré-requisitos](#-pré-requisitos)
-- [Instalação](#-instalação)
-- [Configuração](#-configuração)
-- [Segurança](#-segurança)
-- [Como Usar](#-como-usar)
-- [Docker](#-docker)
-- [Estrutura do Projeto](#-estrutura-do-projeto)
-- [API e WebSocket](#-api-e-websocket)
-- [Testes](#-testes)
-- [Contribuição](#-contribuição)
-- [Licença](#-licença)
-
-## 🎯 Sobre o Projeto
-
-O **PriceGuard** é uma plataforma moderna e intuitiva para monitoramento de preços de criptomoedas em tempo real. Desenvolvida com React e TypeScript, oferece uma experiência rica para traders e investidores acompanharem o mercado de criptomoedas.
-
-### ✨ Principais Características
-
-- 📊 **Dashboard Avançado** - Visualizações interativas com gráficos em tempo real
-- 🔔 **Alertas Inteligentes** - Notificações personalizadas para mudanças de preços
-- 🔒 **Autenticação Segura** - Login com Google OAuth 2.0
-- ⚡ **Tempo Real** - Dados atualizados via WebSocket
-- 📱 **Responsivo** - Interface adaptável para todos os dispositivos
-- 🐳 **Docker Ready** - Ambiente containerizado para desenvolvimento e produção
-
-## 🚀 Funcionalidades
-
-### 🏠 Página Inicial
-- Visão geral do mercado de criptomoedas
-- Estatísticas globais e tendências
-- Interface moderna com animações suaves
-
-### 📈 Mercado
-- **Visão Geral**: Top gainers e losers do dia
-- **Tabela Completa**: Lista abrangente com filtros e ordenação
-- **Dashboard Avançado**: Análises técnicas detalhadas com indicadores
-
-### 👤 Perfil do Usuário
-- Gerenciamento de configurações pessoais
-- Histórico de atividades
-- Configurações de alertas e notificações
-
-### 📊 Widgets TradingView
-- Gráficos interativos integrados
-- Análise técnica avançada
-- Múltiplos timeframes
-
-## 🛠 Tecnologias
-
-### Frontend
-- **React** 18.3.1 - Biblioteca principal
-- **TypeScript** 5.7.2 - Tipagem estática
-- **React Router** 6.28.0 - Navegação
-- **TailwindCSS** 3.4.1 - Estilização utilitária
-
-### UI/UX
-- **Material-UI** 6.1.8 - Componentes avançados
-- **Phosphor Icons** 2.1.7 - Ícones modernos
-- **React Toastify** 10.0.6 - Notificações
-- **Recharts** 2.13.3 - Gráficos e visualizações
-
-### Autenticação & Estado
-- **React OAuth Google** 0.12.1 - Autenticação
-- **JWT Decode** 4.0.0 - Decodificação de tokens
-- **Axios** 1.3.4 - Cliente HTTP
-
-### Desenvolvimento
-- **Docker** - Containerização
-- **ESLint** - Linting de código
-- **React Hook Form** 7.53.2 - Gerenciamento de formulários
-
-## 📋 Pré-requisitos
-
-- **Node.js** 18+ 
-- **npm** ou **yarn**
-- **Docker** (opcional, para ambiente containerizado)
-- **Google OAuth Client ID** (para autenticação)
-
-## 🔧 Instalação
-
-### 1. Clone o repositório
-```bash
-git clone https://github.com/growthfolio/react-priceguard-view.git
-cd react-priceguard-view
+  return { prices };
+};
 ```
 
-### 2. Instale as dependências
+## 💡 Principais Aprendizados
+
+### ⚛️ React Avançado
+- **Custom Hooks:** Reutilização de lógica complexa
+- **Context API:** Gerenciamento de estado global
+- **Performance:** useMemo, useCallback, lazy loading
+- **Error Boundaries:** Tratamento de erros
+
+### 🔌 Comunicação Real-time
+- **WebSocket:** Conexão persistente para dados live
+- **Reconnection Logic:** Reconexão automática
+- **Message Handling:** Tipagem de mensagens WebSocket
+- **Subscription Management:** Gerenciamento de canais
+
+### 🔐 Autenticação e Segurança
+- **Google OAuth:** Integração com @react-oauth/google
+- **JWT Handling:** Armazenamento e renovação de tokens
+- **Protected Routes:** Rotas condicionais por autenticação
+- **Session Management:** Controle de sessão do usuário
+
+## 🧠 Conceitos Técnicos Estudados
+
+### 1. **WebSocket Service**
+```typescript
+class WebSocketService {
+  private socket: WebSocket | null = null;
+  private eventHandlers: Map<string, Function[]> = new Map();
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 5;
+  
+  connect(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const token = sessionService.getToken();
+      const wsUrl = `${this.baseUrl}/ws?token=${encodeURIComponent(token)}`;
+      
+      this.socket = new WebSocket(wsUrl);
+      
+      this.socket.onopen = () => {
+        this.reconnectAttempts = 0;
+        resolve();
+      };
+      
+      this.socket.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        this.handleMessage(message);
+      };
+    });
+  }
+}
+```
+
+### 2. **TypeScript Interfaces**
+```typescript
+interface CryptoData {
+  symbol: string;
+  name: string;
+  current_price: number;
+  price_change_24h: number;
+  price_change_percentage_24h: number;
+  market_cap: number;
+  volume_24h: number;
+  last_updated: string;
+}
+
+interface WebSocketMessage {
+  type: 'price_update' | 'alert_triggered' | 'notification';
+  data: any;
+  timestamp: string;
+}
+
+interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  login: (credentials: LoginCredentials) => Promise<void>;
+  logout: () => void;
+  loading: boolean;
+}
+```
+
+### 3. **Responsive Components**
+```tsx
+const MarketTable: React.FC = () => {
+  const [cryptoData, setCryptoData] = useState<CryptoData[]>([]);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'market_cap', direction: 'desc' });
+  
+  const sortedData = useMemo(() => {
+    return [...cryptoData].sort((a, b) => {
+      if (sortConfig.direction === 'asc') {
+        return a[sortConfig.key] > b[sortConfig.key] ? 1 : -1;
+      }
+      return a[sortConfig.key] < b[sortConfig.key] ? 1 : -1;
+    });
+  }, [cryptoData, sortConfig]);
+  
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full bg-white shadow-lg rounded-lg">
+        {/* Table implementation */}
+      </table>
+    </div>
+  );
+};
+```
+
+## 📁 Estrutura do Projeto
+```
+react-priceguard-view/
+├── src/
+│   ├── components/          # Componentes reutilizáveis
+│   │   ├── ui/             # Componentes base
+│   │   ├── layout/         # Layout da aplicação
+│   │   └── marketTable/    # Tabela de mercado
+│   ├── contexts/           # Context API
+│   │   ├── AuthContext.tsx
+│   │   └── WebSocketContext.tsx
+│   ├── hooks/              # Custom hooks
+│   ├── pages/              # Páginas da aplicação
+│   ├── services/           # Serviços (API, WebSocket)
+│   ├── models/             # Interfaces TypeScript
+│   └── utils/              # Funções utilitárias
+├── public/                 # Assets estáticos
+├── docker-compose.yml      # Configuração Docker
+└── nginx.conf             # Configuração Nginx
+```
+
+## 🔧 Como Executar
+
+### Desenvolvimento Local
 ```bash
+# Instalar dependências
 npm install
-# ou
-yarn install
-```
 
-### 3. Configure as variáveis de ambiente
-```bash
-# Copie o arquivo de exemplo
-cp .env.docker .env
+# Configurar variáveis de ambiente
+cp .env.example .env.local
 
-# Edite as variáveis necessárias
-REACT_APP_GOOGLE_CLIENT_ID=seu_google_client_id
-REACT_APP_API_URL=http://localhost:8080
-REACT_APP_SKIP_AUTH=false  # true para modo de teste
-```
-
-### 4. Inicie o servidor de desenvolvimento
-```bash
+# Iniciar aplicação
 npm start
-# ou
-yarn start
 ```
 
-A aplicação estará disponível em `http://localhost:3000`
-
-## ⚙️ Configuração
-
-### Variáveis de Ambiente
-
-| Variável | Descrição | Padrão |
-|----------|-----------|---------|
-| `REACT_APP_GOOGLE_CLIENT_ID` | ID do cliente Google OAuth | - |
-| `REACT_APP_API_URL` | URL da API backend | `http://localhost:8080` |
-| `REACT_APP_SKIP_AUTH` | Pular autenticação (modo teste) | `false` |
-
-### Modo de Teste
-
-Para desenvolvimento sem necessidade de autenticação:
-
+### Docker (Recomendado)
 ```bash
-# No arquivo .env
-REACT_APP_SKIP_AUTH=true
-```
-
-Este modo utiliza dados mockados e um usuário de teste padrão.
-
-## 🔒 Segurança
-
-### ⚠️ Informações Importantes
-
-Este projeto utiliza informações sensíveis que devem ser protegidas:
-
-- **Google Client ID** para autenticação OAuth
-- **Chaves de API** para serviços externos
-- **Certificados SSL** para HTTPS
-
-### 🛡️ Configuração Segura
-
-1. **Nunca commite credenciais reais:**
-   ```bash
-   # ✅ Use arquivo local (ignorado pelo git)
-   cp .env.example .env.local
-   # Configure suas credenciais reais em .env.local
-   ```
-
-2. **Verificação de segurança:**
-   ```bash
-   ./security-check.sh
-   ```
-
-3. **Configuração Google OAuth:**
-   - Acesse [Google Cloud Console](https://console.cloud.google.com/)
-   - Crie credenciais OAuth 2.0
-   - Configure URLs autorizadas
-   - Use o Client ID em `.env.local`
-
-📚 **Consulte [SECURITY.md](SECURITY.md) para guia completo de segurança**
-
-## 🎮 Como Usar
-
-### 1. **Login**
-- Acesse a página de login
-- Use sua conta Google para autenticação
-- Ou ative o modo de teste para acesso direto
-
-### 2. **Dashboard Principal**
-- Visualize estatísticas globais do mercado
-- Acompanhe as principais criptomoedas
-- Acesse recursos rápidos
-
-### 3. **Página de Mercado**
-- **Visão Geral**: Top gainers/losers
-- **Tabela**: Lista completa com filtros
-- **Dashboard Avançado**: Análises técnicas
-
-### 4. **Análise Detalhada**
-- Clique em qualquer criptomoeda para abrir o gráfico TradingView
-- Analise tendências e indicadores técnicos
-- Configure alertas personalizados
-
-## 🐳 Docker
-
-### Desenvolvimento Rápido
-
-```bash
-# Iniciar ambiente de desenvolvimento
+# Desenvolvimento
 ./docker.sh dev
 
-# Ou usando docker-compose diretamente
-docker-compose --profile dev up
-```
-
-### Produção
-
-```bash
-# Build e deploy em produção
+# Produção
 ./docker.sh prod
 
 # Verificar status
 ./docker.sh status
 ```
 
-### Scripts Docker Disponíveis
+### Configuração OAuth
+1. Acesse [Google Cloud Console](https://console.cloud.google.com/)
+2. Crie credenciais OAuth 2.0
+3. Configure URLs autorizadas
+4. Adicione Client ID no `.env.local`
 
-| Comando | Descrição |
-|---------|-----------|
-| `./docker.sh dev` | Ambiente de desenvolvimento |
-| `./docker.sh prod` | Ambiente de produção |
-| `./docker.sh build` | Build das imagens |
-| `./docker.sh stop` | Parar containers |
-| `./docker.sh clean` | Limpeza completa |
-| `./docker.sh logs [serviço]` | Visualizar logs |
+## 🚧 Desafios Enfrentados
+1. **WebSocket Management:** Reconexão automática e handling de mensagens
+2. **TypeScript:** Tipagem complexa para dados de crypto
+3. **Performance:** Otimização de re-renders com dados real-time
+4. **OAuth Integration:** Fluxo completo de autenticação Google
+5. **Responsive Design:** Interface adaptável para mobile/desktop
+6. **Docker Configuration:** Setup para desenvolvimento e produção
 
-### Profiles Docker
+## 📚 Recursos Utilizados
+- [React Documentation](https://react.dev/)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+- [TailwindCSS](https://tailwindcss.com/docs)
+- [Google OAuth Guide](https://developers.google.com/identity/oauth2/web/guides/overview)
+- [WebSocket API](https://developer.mozilla.org/en-US/docs/Web/API/WebSocket)
 
-- **dev**: Desenvolvimento com hot-reload
-- **prod**: Produção com Nginx
-- **dev-nginx**: Desenvolvimento + Nginx
+## 📈 Próximos Passos
+- [ ] Implementar PWA (Progressive Web App)
+- [ ] Adicionar testes automatizados (Jest + Testing Library)
+- [ ] Criar sistema de notificações push
+- [ ] Implementar modo escuro/claro
+- [ ] Adicionar mais indicadores técnicos
+- [ ] Otimizar performance com React Query
 
-## 📁 Estrutura do Projeto
-
-```
-src/
-├── components/          # Componentes reutilizáveis
-│   ├── ui/             # Componentes base (Button, Card, etc)
-│   ├── layout/         # Layout da aplicação
-│   ├── nav/           # Navegação e navbar
-│   ├── footer/        # Rodapé
-│   ├── marketTable/   # Componentes da tabela de mercado
-│   └── dropdowns/     # Menus dropdown
-├── contexts/           # Contextos React
-│   ├── AuthContext.tsx    # Autenticação
-│   └── WebSocketContext.tsx # WebSocket
-├── hooks/              # Custom hooks
-├── pages/              # Páginas da aplicação
-│   ├── home/          # Página inicial
-│   ├── login/         # Autenticação
-│   ├── market/        # Mercado
-│   └── profile/       # Perfil do usuário
-├── routes/             # Configuração de rotas
-├── services/           # Serviços (API, WebSocket)
-├── models/             # Modelos TypeScript
-├── utils/              # Utilitários
-└── modal/              # Componentes de modal
-```
-
-## 🌐 API e WebSocket
-
-### Endpoints da API
-
-```typescript
-// Serviços principais
-/api/auth/google        # Autenticação Google
-/api/crypto/data        # Dados de criptomoedas
-/api/user/profile       # Perfil do usuário
-/api/alerts             # Alertas personalizados
-```
-
-### WebSocket
-
-```typescript
-// Conexão em tempo real
-ws://localhost:8080/websocket
-
-// Eventos
-- crypto_data_update    # Atualização de preços
-- alert_triggered       # Alerta disparado
-- connection_status     # Status da conexão
-```
-
-## 🧪 Testes
-
-```bash
-# Executar testes
-npm test
-
-# Testes com cobertura
-npm test -- --coverage --watchAll=false
-
-# Via Docker
-./docker.sh test
-```
-
-### Estrutura de Testes
-
-- **Unit Tests**: Componentes individuais
-- **Integration Tests**: Fluxos completos
-- **E2E Tests**: Cenários de usuário
-
-## 📊 Funcionalidades Técnicas
-
-### Performance
-- ⚡ Lazy loading de componentes
-- 🎯 Memoização de dados pesados
-- 📦 Code splitting automático
-- 🔄 Cache inteligente de dados
-
-### Segurança
-- 🔐 Autenticação JWT
-- 🛡️ Sanitização de dados
-- 🔒 HTTPS em produção
-- 🚫 Proteção XSS/CSRF
-
-### Monitoramento
-- 📈 Web Vitals
-- 🔍 Error tracking
-- 📊 Performance metrics
-- 🚀 Health checks
-
-## 🤝 Contribuição
-
-### Como Contribuir
-
-1. **Fork** o projeto
-2. **Clone** seu fork
-3. **Crie** uma branch para sua feature
-4. **Commit** suas mudanças
-5. **Push** para a branch
-6. **Abra** um Pull Request
-
-### Padrões de Commit
-
-```bash
-feat: adiciona nova funcionalidade
-fix: corrige bug
-docs: atualiza documentação
-style: mudanças de estilo/formatação
-refactor: refatoração de código
-test: adiciona ou modifica testes
-chore: tarefas de manutenção
-```
-
-### Desenvolvimento Local
-
-```bash
-# Instalar dependências
-npm install
-
-# Executar em modo de desenvolvimento
-npm start
-
-# Executar testes
-npm test
-
-# Build para produção
-npm run build
-```
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+## 🔗 Projetos Relacionados
+- [Go PriceGuard API](../go-priceguard-api/) - Backend da aplicação
+- [React E-commerce](../react-ecommerce-tt/) - Experiência com React
+- [Java Generation Notes](../java-generation-notes/) - Base de estudos
 
 ---
 
-## 👥 Equipe
+**Desenvolvido por:** Felipe Macedo  
+**Contato:** contato.dev.macedo@gmail.com  
+**GitHub:** [FelipeMacedo](https://github.com/felipemacedo1)  
+**LinkedIn:** [felipemacedo1](https://linkedin.com/in/felipemacedo1)
 
-**Desenvolvido por [Felipe Macedo](https://github.com/felipemacedo1)**
-
-### 🌟 Funcionalidades Futuras
-
-- [ ] Notificações push
-- [ ] Modo escuro/claro
-- [ ] API própria para dados
-- [ ] App mobile React Native
-- [ ] Alertas por email/SMS
-- [ ] Portfolio tracking
-- [ ] Social trading features
-
-### 🐛 Reportar Bugs
-
-Encontrou um bug? [Abra uma issue](https://github.com/growthfolio/react-priceguard-view/issues/new)
-
-### 💬 Suporte
-
-- 📧 Email: contato.dev.macedo@gmail.com
-<!--
-- 💬 Discord: [PriceGuard Community](https://discord.gg/priceguard)
-- 📚 Documentação: [docs.priceguard.dev](https://docs.priceguard.dev)
--->
----
-
-<div align="center">
-  <p>⭐ Não esqueça de dar uma estrela se o projeto foi útil!</p>
-  <p>🚀 <strong>Happy Trading!</strong> 🚀</p>
-</div>
+> 💡 **Reflexão:** Este projeto elevou meus conhecimentos em React e TypeScript a um nível avançado. A integração com WebSockets, OAuth e a criação de uma interface complexa e responsiva consolidaram habilidades essenciais para desenvolvimento frontend moderno.
